@@ -15,4 +15,4 @@ Defaults to Single Step mode. Pressing 'RUN' in this example runs until
 the HLT opcode (FD B1) is encountered, this sets it back to Single Step mode
 so it halts after this opcode finihsed.
 
-[!Prerelease UI](/Images/lh5801_Emu.png)
+![Prerelease UI](/Images/lh5801_Emu.png)
