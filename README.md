@@ -28,4 +28,4 @@ dialog at this point.
 Most opcodes should work properly a few have not been implemented yet
 as testing on actual hardware needs to be done.
 
-![Prerelease UI](/Images/lh5801_Emu01.png)
+![Prerelease UI](/Images/lh5801_Emu_01.png)
