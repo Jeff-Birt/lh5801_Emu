@@ -96,7 +96,7 @@ namespace lh5801_Emu
         public bool SingleStep = true;
         public Registers REG;
         public StatusFlags FLAGS;
-        public byte[] RAM = new byte[0xFFFF + 0x01];
+        public byte[] RAM_ME0 = new byte[0xFFFF + 0x01];
         public byte[] RAM_ME1 = new byte[0xFFFF + 0x01];
         List<Delegate> delegatesTbl1 = new List<Delegate>();
         List<Delegate> delegatesTbl2 = new List<Delegate>();
@@ -129,8 +129,8 @@ namespace lh5801_Emu
         /// </summary>
         private void ResetRAM()
         {
-            Array.Clear(RAM, 0, RAM.Length);
-            Array.Clear(RAM_ME1, 0, RAM.Length);
+            Array.Clear(RAM_ME0, 0, RAM_ME0.Length);
+            Array.Clear(RAM_ME1, 0, RAM_ME0.Length);
         }
 
         /// <summary>
@@ -951,7 +951,7 @@ namespace lh5801_Emu
         /// <returns></returns>
         private byte GetByte()
         {
-            byte val = RAM[REG.P.R];
+            byte val = RAM_ME0[REG.P.R];
             REG.P.R += 1; // Advance Program Counter
 
             return val;
@@ -964,7 +964,7 @@ namespace lh5801_Emu
         /// <returns>Address</returns>
         private ushort GetWord()
         {
-            ushort val = (ushort)((RAM[REG.P.R] << 8) | RAM[REG.P.R + 1]);
+            ushort val = (ushort)((RAM_ME0[REG.P.R] << 8) | RAM_ME0[REG.P.R + 1]);
             REG.P.R += 2; // Advance Program Counter
 
             return val;
@@ -976,7 +976,7 @@ namespace lh5801_Emu
         /// <returns>16bit value</returns>
         private ushort GetWord(ushort address)
         {
-            return (ushort)((RAM[address] << 8) | RAM[address + 1]);
+            return (ushort)((RAM_ME0[address] << 8) | RAM_ME0[address + 1]);
         }
 
         /// <summary>
@@ -1162,58 +1162,63 @@ namespace lh5801_Emu
         #region RAM Read/Write
 
         /// <summary>
-        /// ReadRAM ME0
+        /// Read value at address from RAM bank ME1
         /// </summary>
         /// <param name="address"></param>
-        /// <returns></returns>
-        public byte ReadRAM(ushort address)
+        /// <returns>Byte value at address</returns>
+        public byte ReadRAM_ME0(ushort address)
         {
-            return RAM[address];
+            return RAM_ME0[address];
         }
 
         /// <summary>
-        /// ReadRAM_ME1
+        /// Read value at address from RAM bank ME1
         /// </summary>
         /// <param name="address"></param>
-        /// <returns></returns>
+        /// <returns>Byte value at address</returns>
         public byte ReadRAM_ME1(ushort address)
         {
             return RAM_ME1[address];
         }
 
-        public void WriteRAM(ushort address, byte value)
+        /// <summary>
+        /// Write new byte value to address in RAM bank ME0
+        /// </summary>
+        /// <param name="address">Address to write to</param>
+        /// <param name="value">Byte value</param>
+        public void WriteRAM_ME0(ushort address, byte value)
         {
-            RAM[address] = value;
+            RAM_ME0[address] = value;
         }
 
         /// <summary>
-        /// WriteRAM ME0
+        /// Write new byte values starting at address in RAM bank ME0
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="values"></param>
-        public void WriteRAM(ushort address, byte[] values)
+        /// <param name="address">Starting address</param>
+        /// <param name="values">Byte array to write</param>
+        public void WriteRAM_ME0(ushort address, byte[] values)
         {
             for (int i=0; i < values.Length; i++)
             {
-                RAM[address + i] = values[i];
+                RAM_ME0[address + i] = values[i];
             }
         }
 
         /// <summary>
-        /// WriteRAM_ME1
+        /// Write new byte value to address in RAM bank ME0
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="value"></param>
+        /// <param name="address">Address to write to</param>
+        /// <param name="value">Byte value</param>
         public void WriteRAM_ME1(ushort address, byte value)
         {
             RAM_ME1[address] = value;
         }
 
         /// <summary>
-        /// WriteRAM_ME1
+        /// Write new byte values starting at address in RAM bank ME0
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="values"></param>
+        /// <param name="address">Starting address</param>
+        /// <param name="values">Byte array to write</param>
         public void WriteRAM_ME1(ushort address, byte[] values)
         {
             for (int i = 0; i < values.Length; i++)
@@ -1222,36 +1227,17 @@ namespace lh5801_Emu
             }
         }
 
-        public string HexDump()
-        {
-            StringBuilder val = new StringBuilder();
-
-            int s = RAM.Length;
-            int k = 0;
-            for (int i = 0; i < 4096; i++)
-            {
-                val.Append(k.ToString("X4") + " ");
-                for (int j = 0; j < 16; j++)
-                {
-                    val.Append(RAM[k].ToString("X2") + " ");
-                    k += 1;
-                }
-                val.Append(Environment.NewLine);
-            }
-
-            return val.ToString();
-        }
-
         #endregion RAM Read/Write
 
         /// <summary>
-        /// 
+        /// Run code at current progrma counter 
+        /// Single step if SingleStep is set
         /// </summary>
         public void Run()
         {
             do
             {
-                byte opcode = RAM[REG.P.R];
+                byte opcode = RAM_ME0[REG.P.R];
                 delegatesTbl1[opcode].DynamicInvoke();
             } while (!SingleStep);
 
@@ -1284,7 +1270,7 @@ namespace lh5801_Emu
         public void SBC_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Subtract(this.REG.A, RAM[REG.X.R]);
+            this.REG.A = Subtract(this.REG.A, RAM_ME0[REG.X.R]);
             // flags set by subtraction function
         }
 
@@ -1308,7 +1294,7 @@ namespace lh5801_Emu
         private void ADC_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Add(this.REG.A, this.RAM[REG.X.R]);
+            this.REG.A = Add(this.REG.A, this.RAM_ME0[REG.X.R]);
             // flags set by addition function
         }
 
@@ -1333,7 +1319,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.X.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             SetZFlag();
         }
 
@@ -1357,7 +1343,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)REG.X.R;
-            SetCompareFlags(REG.A, RAM[address]);
+            SetCompareFlags(REG.A, RAM_ME0[address]);
         }
 
         /// <summary>
@@ -1380,7 +1366,7 @@ namespace lh5801_Emu
         private void AND_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A & RAM[this.REG.X.R]);
+            this.REG.A = (byte)(this.REG.A & RAM_ME0[this.REG.X.R]);
             SetZFlag();
         }
 
@@ -1404,7 +1390,7 @@ namespace lh5801_Emu
         private void ORA_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A | RAM[REG.X.R]);
+            this.REG.A = (byte)(this.REG.A | RAM_ME0[REG.X.R]);
             SetZFlag();
         }
 
@@ -1416,7 +1402,7 @@ namespace lh5801_Emu
         private void DCS_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.X.R];
+            byte value = RAM_ME0[REG.X.R];
             this.REG.A = BCDSubtract(this.REG.A, value);
             // flags set by subtraction function
         }
@@ -1429,7 +1415,7 @@ namespace lh5801_Emu
         private void EOR_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.X.R];
+            byte value = RAM_ME0[REG.X.R];
             this.REG.A = (byte)(this.REG.A ^ value);
             SetZFlag();
         }
@@ -1442,7 +1428,7 @@ namespace lh5801_Emu
         private void STA_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.X.R] = this.REG.A;
+            RAM_ME0[REG.X.R] = this.REG.A;
             // no flag changes
         }
 
@@ -1455,7 +1441,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.X.R;
-            byte result = (byte)(this.REG.A & RAM[address]);
+            byte result = (byte)(this.REG.A & RAM_ME0[address]);
             SetZFlag(result);
         }
 
@@ -1483,7 +1469,7 @@ namespace lh5801_Emu
         public void SBC_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Subtract(this.REG.A, RAM[REG.Y.R]);
+            this.REG.A = Subtract(this.REG.A, RAM_ME0[REG.Y.R]);
             // flags set by subtraction function
         }
 
@@ -1507,7 +1493,7 @@ namespace lh5801_Emu
         private void ADC_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Add(this.REG.A, this.RAM[REG.Y.R]);
+            this.REG.A = Add(this.REG.A, this.RAM_ME0[REG.Y.R]);
             // flags set by addition function
         }
 
@@ -1532,7 +1518,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.Y.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             SetZFlag();
         }
 
@@ -1556,7 +1542,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)REG.Y.R;
-            SetCompareFlags(REG.A, RAM[address]);
+            SetCompareFlags(REG.A, RAM_ME0[address]);
         }
 
         /// <summary>
@@ -1579,7 +1565,7 @@ namespace lh5801_Emu
         private void AND_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A & RAM[this.REG.Y.R]);
+            this.REG.A = (byte)(this.REG.A & RAM_ME0[this.REG.Y.R]);
             SetZFlag();
         }
 
@@ -1603,7 +1589,7 @@ namespace lh5801_Emu
         private void ORA_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A | RAM[REG.Y.R]);
+            this.REG.A = (byte)(this.REG.A | RAM_ME0[REG.Y.R]);
             SetZFlag();
         }
 
@@ -1615,7 +1601,7 @@ namespace lh5801_Emu
         private void DCS_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.Y.R];
+            byte value = RAM_ME0[REG.Y.R];
             this.REG.A = BCDSubtract(this.REG.A, value);
             // flags set by addition function
         }
@@ -1628,7 +1614,7 @@ namespace lh5801_Emu
         private void EOR_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.Y.R];
+            byte value = RAM_ME0[REG.Y.R];
             this.REG.A = (byte)(this.REG.A ^ value);
             SetZFlag();
         }
@@ -1641,7 +1627,7 @@ namespace lh5801_Emu
         private void STA_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.Y.R] = this.REG.A;
+            RAM_ME0[REG.Y.R] = this.REG.A;
             // no flag changes
         }
 
@@ -1654,7 +1640,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.Y.R;
-            byte result = (byte)(this.REG.A & RAM[address]);
+            byte result = (byte)(this.REG.A & RAM_ME0[address]);
             SetZFlag(result);
         }
 
@@ -1682,7 +1668,7 @@ namespace lh5801_Emu
         public void SBC_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Subtract(this.REG.A, RAM[REG.U.R]);
+            this.REG.A = Subtract(this.REG.A, RAM_ME0[REG.U.R]);
             // flags set by subtraction function
         }
 
@@ -1706,7 +1692,7 @@ namespace lh5801_Emu
         private void ADC_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Add(this.REG.A, this.RAM[REG.U.R]);
+            this.REG.A = Add(this.REG.A, this.RAM_ME0[REG.U.R]);
             // flags set by addition function
         }
 
@@ -1731,7 +1717,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.U.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             SetZFlag();
         }
 
@@ -1755,7 +1741,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)REG.U.R;
-            SetCompareFlags(REG.A, RAM[address]);
+            SetCompareFlags(REG.A, RAM_ME0[address]);
         }
 
         /// <summary>
@@ -1778,7 +1764,7 @@ namespace lh5801_Emu
         private void AND_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A & RAM[this.REG.U.R]);
+            this.REG.A = (byte)(this.REG.A & RAM_ME0[this.REG.U.R]);
             SetZFlag();
         }
 
@@ -1802,7 +1788,7 @@ namespace lh5801_Emu
         private void ORA_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A | RAM[REG.U.R]);
+            this.REG.A = (byte)(this.REG.A | RAM_ME0[REG.U.R]);
             SetZFlag();
         }
 
@@ -1814,7 +1800,7 @@ namespace lh5801_Emu
         private void DCS_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.U.R];
+            byte value = RAM_ME0[REG.U.R];
             this.REG.A = BCDSubtract(this.REG.A, value);
             // flags set by addition function
         }
@@ -1827,7 +1813,7 @@ namespace lh5801_Emu
         private void EOR_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.U.R];
+            byte value = RAM_ME0[REG.U.R];
             this.REG.A = (byte)(this.REG.A ^ value);
             SetZFlag();
         }
@@ -1840,7 +1826,7 @@ namespace lh5801_Emu
         private void STA_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.U.R] = this.REG.A;
+            RAM_ME0[REG.U.R] = this.REG.A;
             // no flag changes
         }
 
@@ -1853,7 +1839,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.U.R;
-            byte result = (byte)(this.REG.A & RAM[address]);
+            byte result = (byte)(this.REG.A & RAM_ME0[address]);
             SetZFlag(result);
         }
 
@@ -1881,7 +1867,7 @@ namespace lh5801_Emu
         public void SBC_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Subtract(this.REG.A, RAM[REG.V.R]);
+            this.REG.A = Subtract(this.REG.A, RAM_ME0[REG.V.R]);
             // flags set by subtraction function
         }
 
@@ -1905,7 +1891,7 @@ namespace lh5801_Emu
         private void ADC_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = Add(this.REG.A, this.RAM[REG.V.R]);
+            this.REG.A = Add(this.REG.A, this.RAM_ME0[REG.V.R]);
             // flags set by addition function
         }
 
@@ -1930,7 +1916,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.V.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             SetZFlag();
         }
 
@@ -1954,7 +1940,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)REG.V.R;
-            SetCompareFlags(REG.A, RAM[address]);
+            SetCompareFlags(REG.A, RAM_ME0[address]);
         }
 
         /// <summary>
@@ -1975,7 +1961,7 @@ namespace lh5801_Emu
         private void AND_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A & RAM[this.REG.V.R]);
+            this.REG.A = (byte)(this.REG.A & RAM_ME0[this.REG.V.R]);
             SetZFlag();
         }
 
@@ -1999,7 +1985,7 @@ namespace lh5801_Emu
         private void ORA_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = (byte)(this.REG.A | RAM[REG.V.R]);
+            this.REG.A = (byte)(this.REG.A | RAM_ME0[REG.V.R]);
             SetZFlag();
         }
 
@@ -2011,7 +1997,7 @@ namespace lh5801_Emu
         private void DCS_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.V.R];
+            byte value = RAM_ME0[REG.V.R];
             this.REG.A = BCDSubtract(this.REG.A, value);
             // flags set by addition function
         }
@@ -2024,7 +2010,7 @@ namespace lh5801_Emu
         private void EOR_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.V.R];
+            byte value = RAM_ME0[REG.V.R];
             this.REG.A = (byte)(this.REG.A ^ value);
             SetZFlag();
         }
@@ -2037,7 +2023,7 @@ namespace lh5801_Emu
         private void STA_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.V.R] = this.REG.A;
+            RAM_ME0[REG.V.R] = this.REG.A;
             // no flag changes
         }
 
@@ -2050,7 +2036,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.V.R;
-            byte result = (byte)(this.REG.A & RAM[address]);
+            byte result = (byte)(this.REG.A & RAM_ME0[address]);
             SetZFlag(result);
         }
 
@@ -2078,7 +2064,7 @@ namespace lh5801_Emu
         private void SIN_X()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.X.R] = REG.A;
+            RAM_ME0[REG.X.R] = REG.A;
             REG.X.R += 1;
             // no flag changes
         }
@@ -2103,7 +2089,7 @@ namespace lh5801_Emu
         private void SDE_X()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.X.R] = REG.A;
+            RAM_ME0[REG.X.R] = REG.A;
             REG.X.R -= 1;
             // no flag changes
         }
@@ -2128,7 +2114,7 @@ namespace lh5801_Emu
         public void LIN_X()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = RAM[REG.X.R];
+            this.REG.A = RAM_ME0[REG.X.R];
             REG.X.R += 1;
             // no flag changes
         }
@@ -2154,7 +2140,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.X.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             REG.X.R -= 1;
             SetZFlag(REG.X.R);
         }
@@ -2182,8 +2168,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
             ushort address = (ushort)this.REG.X.R; // 
-            RAM[address] = (byte)(RAM[address] & value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] & value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2209,8 +2195,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte();
             ushort address = REG.X.R;
-            RAM[address] = (byte)(RAM[address] | value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] | value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2235,7 +2221,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = this.GetByte(); // P += 1
             ushort address = (ushort)this.REG.X.R;
-            byte result = (byte)(RAM[address] & value);
+            byte result = (byte)(RAM_ME0[address] & value);
             SetZFlag(result);
         }
 
@@ -2260,7 +2246,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
-            this.RAM[REG.X.R] = Add(this.RAM[REG.X.R], value);
+            this.RAM_ME0[REG.X.R] = Add(this.RAM_ME0[REG.X.R], value);
             // flags set by addition function
         }
 
@@ -2288,7 +2274,7 @@ namespace lh5801_Emu
         private void SIN_Y()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.Y.R] = REG.A;
+            RAM_ME0[REG.Y.R] = REG.A;
             REG.Y.R += 1;
             // no flag changes
         }
@@ -2313,7 +2299,7 @@ namespace lh5801_Emu
         private void SDE_Y()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.Y.R] = REG.A;
+            RAM_ME0[REG.Y.R] = REG.A;
             REG.Y.R -= 1;
             // no flag changes
         }
@@ -2338,7 +2324,7 @@ namespace lh5801_Emu
         public void LIN_Y()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = RAM[REG.Y.R];
+            this.REG.A = RAM_ME0[REG.Y.R];
             REG.Y.R += 1;
             // no flag changes
         }
@@ -2364,7 +2350,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.Y.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             REG.Y.R -= 1;
             SetZFlag(REG.Y.R);
         }
@@ -2392,8 +2378,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
             ushort address = (ushort)this.REG.Y.R;
-            RAM[address] = (byte)(RAM[address] & value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] & value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2419,8 +2405,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte();
             ushort address = REG.Y.R;
-            RAM[address] = (byte)(RAM[address] | value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] | value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2445,7 +2431,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = this.GetByte(); // P += 1
             ushort address = (ushort)this.REG.Y.R;
-            byte result = (byte)(RAM[address] & value);
+            byte result = (byte)(RAM_ME0[address] & value);
             SetZFlag(result);
         }
 
@@ -2470,7 +2456,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
-            RAM[this.REG.Y.R] = Add(RAM[this.REG.Y.R], value);
+            RAM_ME0[this.REG.Y.R] = Add(RAM_ME0[this.REG.Y.R], value);
             // no flag changes
         }
 
@@ -2498,7 +2484,7 @@ namespace lh5801_Emu
         private void SIN_U()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.U.R] = REG.A;
+            RAM_ME0[REG.U.R] = REG.A;
             REG.U.R += 1;
             // no flag changes
         }
@@ -2523,7 +2509,7 @@ namespace lh5801_Emu
         private void SDE_U()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.U.R] = REG.A;
+            RAM_ME0[REG.U.R] = REG.A;
             REG.U.R -= 1;
             // no flag changes
         }
@@ -2548,7 +2534,7 @@ namespace lh5801_Emu
         public void LIN_U()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = RAM[REG.U.R];
+            this.REG.A = RAM_ME0[REG.U.R];
             REG.U.R += 1;
             // no flag changes
         }
@@ -2574,7 +2560,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.U.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             REG.U.R -= 1;
             SetZFlag(REG.U.R);
         }
@@ -2602,8 +2588,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
             ushort address = (ushort)this.REG.U.R;
-            RAM[address] = (byte)(RAM[address] & value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] & value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2629,8 +2615,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte();
             ushort address = REG.U.R;
-            RAM[address] = (byte)(RAM[address] | value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] | value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2655,7 +2641,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = this.GetByte(); // P += 1
             ushort address = (ushort)this.REG.U.R;
-            byte result = (byte)(RAM[address] & value);
+            byte result = (byte)(RAM_ME0[address] & value);
             SetZFlag(result);
         }
 
@@ -2680,7 +2666,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
-            RAM[this.REG.U.R] = Add(RAM[this.REG.U.R], value);
+            RAM_ME0[this.REG.U.R] = Add(RAM_ME0[this.REG.U.R], value);
             // no flag changes
         }
 
@@ -2708,7 +2694,7 @@ namespace lh5801_Emu
         private void SIN_V()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.V.R] = REG.A;
+            RAM_ME0[REG.V.R] = REG.A;
             REG.V.R += 1;
             // no flag changes
         }
@@ -2733,7 +2719,7 @@ namespace lh5801_Emu
         private void SDE_V()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.V.R] = REG.A;
+            RAM_ME0[REG.V.R] = REG.A;
             REG.V.R -= 1;
             // no flag changes
         }
@@ -2758,7 +2744,7 @@ namespace lh5801_Emu
         public void LIN_V()
         {
             REG.P.R += 1; // advance Program Counter
-            this.REG.A = RAM[REG.V.R];
+            this.REG.A = RAM_ME0[REG.V.R];
             REG.V.R += 1;
             // no flag changes
         }
@@ -2784,7 +2770,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = (ushort)this.REG.V.R;
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             REG.V.R -= 1;
             SetZFlag(REG.V.R);
         }
@@ -2812,8 +2798,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
             ushort address = (ushort)this.REG.V.R;
-            RAM[address] = (byte)(RAM[address] & value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] & value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2839,8 +2825,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte();
             ushort address = REG.V.R;
-            RAM[address] = (byte)(RAM[address] | value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] | value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -2865,7 +2851,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             byte value = this.GetByte(); // P += 1
             ushort address = (ushort)this.REG.V.R;
-            byte result = (byte)(RAM[address] & value);
+            byte result = (byte)(RAM_ME0[address] & value);
             SetZFlag(result);
         }
 
@@ -2890,7 +2876,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             byte value = GetByte(); // P += 1
-            RAM[this.REG.V.R] = Add(RAM[this.REG.V.R], value);
+            RAM_ME0[this.REG.V.R] = Add(RAM_ME0[this.REG.V.R], value);
             // no flag changes
         }
 
@@ -3059,7 +3045,7 @@ namespace lh5801_Emu
             REG.S.R += 1;               // Adjust stack pointer to start of return address
             REG.P.R = GetWord(REG.S.R); // Retrive return address, i.e. new Program Counter
             REG.S.R += 2;               // Adjust stack pointer to start of T
-            SetTREG(RAM[REG.S.R]);      // Retrieve Flags
+            SetTREG(RAM_ME0[REG.S.R]);      // Retrieve Flags
         }
 
         /// <summary>
@@ -3087,7 +3073,7 @@ namespace lh5801_Emu
         private void DCA_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.X.R];
+            byte value = RAM_ME0[REG.X.R];
             this.REG.A = BCDAdd(this.REG.A, value);
             // flags set by addition function
         }
@@ -3313,7 +3299,7 @@ namespace lh5801_Emu
         private void DCA_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.Y.R];
+            byte value = RAM_ME0[REG.Y.R];
             this.REG.A = BCDAdd(this.REG.A, value);
             // flags set by addition function
         }
@@ -3389,7 +3375,7 @@ namespace lh5801_Emu
         public void SBC_pp_ME0()
         {
             REG.P.R += 1;                     // advance Program Counter
-            byte value = RAM[GetWord()];    // P += 2
+            byte value = RAM_ME0[GetWord()];    // P += 2
             this.REG.A = Subtract(this.REG.A, value);
             // flags set by subtraction function
         }
@@ -3414,7 +3400,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            this.REG.A = Add(this.REG.A, this.RAM[address]);
+            this.REG.A = Add(this.REG.A, this.RAM_ME0[address]);
             // flags set by addition function
         }
 
@@ -3439,7 +3425,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            this.REG.A = RAM[address];
+            this.REG.A = RAM_ME0[address];
             SetZFlag();
         }
 
@@ -3463,7 +3449,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            SetCompareFlags(REG.A, RAM[address]);
+            SetCompareFlags(REG.A, RAM_ME0[address]);
         }
 
         /// <summary>
@@ -3487,7 +3473,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            this.REG.A = (byte)(this.REG.A & RAM[address]);
+            this.REG.A = (byte)(this.REG.A & RAM_ME0[address]);
             SetZFlag();
         }
 
@@ -3513,7 +3499,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            this.REG.A = (byte)(this.REG.A | RAM[address]);
+            this.REG.A = (byte)(this.REG.A | RAM_ME0[address]);
             SetZFlag();
         }
 
@@ -3525,7 +3511,7 @@ namespace lh5801_Emu
         private void DCA_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.U.R];
+            byte value = RAM_ME0[REG.U.R];
             this.REG.A = BCDAdd(this.REG.A, value);
             // flags set by addition function
         }
@@ -3539,7 +3525,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2;
-            byte value = RAM[address];
+            byte value = RAM_ME0[address];
             this.REG.A = (byte)(this.REG.A ^ value);
             SetZFlag();
         }
@@ -3553,7 +3539,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            RAM[address] = this.REG.A;
+            RAM_ME0[address] = this.REG.A;
             // no flag changes
         }
 
@@ -3566,7 +3552,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
-            byte result = (byte)(this.REG.A & RAM[address]);
+            byte result = (byte)(this.REG.A & RAM_ME0[address]);
             SetZFlag(result);
         }
 
@@ -3731,7 +3717,7 @@ namespace lh5801_Emu
         private void DCA_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.V.R];
+            byte value = RAM_ME0[REG.V.R];
             this.REG.A = BCDAdd(this.REG.A, value);
             // flags set by addition function
         }
@@ -3759,8 +3745,8 @@ namespace lh5801_Emu
             REG.P.R += 1;                   // advance Program Counter
             ushort address = GetWord();     // P + =2, now pointing to next instruction
 
-            RAM[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = address;              // Set Program Counter to pp
@@ -3792,8 +3778,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             
-            RAM[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFC0;               // Set Program Counter to pp
@@ -3812,8 +3798,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value); 
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -3830,8 +3816,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFC2;               // Set Program Counter to pp
@@ -3850,8 +3836,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -3868,8 +3854,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFC4
@@ -3889,8 +3875,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -3907,8 +3893,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFC6;               // Set Program Counter to pp
@@ -3927,8 +3913,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -3945,8 +3931,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFC8
@@ -3966,8 +3952,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -3983,8 +3969,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFCA
@@ -4004,8 +3990,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -4021,8 +4007,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFCC;               // Set Program Counter to pp
@@ -4039,8 +4025,8 @@ namespace lh5801_Emu
             byte value = GetByte(); // P += 1
             ushort address = (ushort)(0xFF00 | value);
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = address;              // Set Program Counter to pp
@@ -4055,8 +4041,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFCE;               // Set Program Counter to pp
@@ -4075,8 +4061,8 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-                RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                   // move stack pointer to next position
 
                 REG.P.R = address;              // Set Program Counter to pp
@@ -4096,8 +4082,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFD0;               // Set Program Counter to pp
@@ -4126,8 +4112,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFD2;               // Set Program Counter to pp
@@ -4154,8 +4140,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFD4;               // Set Program Counter to pp
@@ -4183,8 +4169,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFD6;               // Set Program Counter to pp
@@ -4211,8 +4197,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFD8;               // Set Program Counter to pp
@@ -4241,8 +4227,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFDA;               // Set Program Counter to pp
@@ -4271,8 +4257,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFDC;               // Set Program Counter to pp
@@ -4299,8 +4285,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFDE;               // Set Program Counter to pp
@@ -4331,8 +4317,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFE0;               // Set Program Counter to pp
@@ -4359,8 +4345,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFE2;               // Set Program Counter to pp
@@ -4387,8 +4373,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFE4
@@ -4404,8 +4390,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFE6;               // Set Program Counter to pp
@@ -4420,8 +4406,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFE8;               // Set Program Counter to pp
@@ -4437,7 +4423,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
             byte value = GetByte(); // P += 1
-            RAM[address] = (byte)(RAM[address] & value);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] & value);
             SetZFlag();
         }
 
@@ -4450,8 +4436,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFEA;               // Set Program Counter to pp
@@ -4467,8 +4453,8 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord();
             byte value = GetByte();
-            RAM[address] = (byte)(RAM[address] | value);
-            SetZFlag(RAM[address]);
+            RAM_ME0[address] = (byte)(RAM_ME0[address] | value);
+            SetZFlag(RAM_ME0[address]);
         }
 
         /// <summary>
@@ -4480,8 +4466,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFEC;               // Set Program Counter to pp
@@ -4497,7 +4483,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
             byte value = this.GetByte(); // P += 1
-            byte result = (byte)(RAM[address] & value);
+            byte result = (byte)(RAM_ME0[address] & value);
             SetZFlag(result);
         }
 
@@ -4510,8 +4496,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFEE;               // Set Program Counter to pp
@@ -4527,7 +4513,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             ushort address = GetWord(); // P += 2
             byte value = GetByte(); // P += 1
-            this.RAM[address] = Add(this.RAM[address], value);
+            this.RAM_ME0[address] = Add(this.RAM_ME0[address], value);
             // flags set by addition function
         }
 
@@ -4544,8 +4530,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFF0;               // Set Program Counter to pp
@@ -4573,8 +4559,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFF2;               // Set Program Counter to pp
@@ -4589,8 +4575,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFF4;               // Set Program Counter to pp
@@ -4604,7 +4590,7 @@ namespace lh5801_Emu
         private void TIN()
         {
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.Y.R] = RAM[REG.X.R];
+            RAM_ME0[REG.Y.R] = RAM_ME0[REG.X.R];
             REG.X.R += 1;
             REG.Y.R += 1;
         }
@@ -4618,8 +4604,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFF6;               // Set Program Counter to pp
@@ -4633,8 +4619,8 @@ namespace lh5801_Emu
         private void CIN()
         {
             REG.P.R += 1; // advance Program Counter
-            byte value = RAM[REG.X.R];
-            SetCompareFlags(REG.A, RAM[REG.X.R]);
+            byte value = RAM_ME0[REG.X.R];
+            SetCompareFlags(REG.A, RAM_ME0[REG.X.R]);
             REG.X.R += 1; // inc X, no flags changed
         }
 
@@ -4647,8 +4633,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFF8;               // Set Program Counter to pp
@@ -4675,8 +4661,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFFA;               // Set Program Counter to pp
@@ -4691,8 +4677,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFFC;               // Set Program Counter to pp
@@ -4718,8 +4704,8 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
-            RAM[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
+            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                   // move stack pointer to next position
 
             REG.P.R = 0xFFFE;               // Set Program Counter to pp
@@ -4732,7 +4718,7 @@ namespace lh5801_Emu
         private void FD_P2()
         {
             REG.P.R += 1; // advance Program Counter
-            byte opcode = RAM[REG.P.R];
+            byte opcode = RAM_ME0[REG.P.R];
             delegatesTbl2[opcode].DynamicInvoke();
             // read next opcode and index into table 2
         }
@@ -4830,10 +4816,10 @@ namespace lh5801_Emu
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
             REG.S.R += 1; // move stack pointer back one
-            byte value = RAM[REG.S.R];
+            byte value = RAM_ME0[REG.S.R];
             REG.X.RH = value;
             REG.S.R += 1; // move stack pointer back one
-            value = RAM[REG.S.R];
+            value = RAM_ME0[REG.S.R];
             REG.X.RL = value;
             // no flags changed
         }
@@ -4994,10 +4980,10 @@ namespace lh5801_Emu
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
             REG.S.R += 1; // move stack pointer back one
-            byte value = RAM[REG.S.R];
+            byte value = RAM_ME0[REG.S.R];
             REG.Y.RH = value;
             REG.S.R += 1; // move stack pointer back one
-            value = RAM[REG.S.R];
+            value = RAM_ME0[REG.S.R];
             REG.Y.RL = value;
             // no flags changed
         }
@@ -5158,10 +5144,10 @@ namespace lh5801_Emu
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
             REG.S.R += 1; // move stack pointer back one
-            byte value = RAM[REG.S.R];
+            byte value = RAM_ME0[REG.S.R];
             REG.U.RH = value;
             REG.S.R += 1; // move stack pointer back one
-            value = RAM[REG.S.R];
+            value = RAM_ME0[REG.S.R];
             REG.U.RL = value;
             // no flags changed
         }
@@ -5322,10 +5308,10 @@ namespace lh5801_Emu
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
             REG.S.R += 1; // move stack pointer back one
-            byte value = RAM[REG.S.R];
+            byte value = RAM_ME0[REG.S.R];
             REG.V.RH = value;
             REG.S.R += 1; // move stack pointer back one
-            value = RAM[REG.S.R];
+            value = RAM_ME0[REG.S.R];
             REG.V.RL = value;
             // no flags changed
         }
@@ -5875,9 +5861,9 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.S.R]   = REG.X.RL;
+            RAM_ME0[REG.S.R]   = REG.X.RL;
             REG.S.R -= 1; // move stack pointer to next position
-            RAM[REG.S.R] = REG.X.RH;
+            RAM_ME0[REG.S.R] = REG.X.RH;
             REG.S.R -= 1; // move stack pointer to next position
         }
 
@@ -5891,7 +5877,7 @@ namespace lh5801_Emu
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
             REG.S.R += 1; // move stack pointer back one place to A
-            byte value = RAM[REG.S.R];
+            byte value = RAM_ME0[REG.S.R];
             this.REG.A = value;
             SetZFlag();
         }
@@ -5935,9 +5921,9 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.S.R] = REG.Y.RL;
+            RAM_ME0[REG.S.R] = REG.Y.RL;
             REG.S.R -= 1; // move stack pointer to nextposition
-            RAM[REG.S.R] = REG.Y.RH;
+            RAM_ME0[REG.S.R] = REG.Y.RH;
             REG.S.R -= 1; // move stack pointer to nextposition
             // no flags changed
         }
@@ -6021,9 +6007,9 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.S.R] = REG.U.RL;
+            RAM_ME0[REG.S.R] = REG.U.RL;
             REG.S.R -= 1; // move stack pointer to nextposition
-            RAM[REG.S.R] = REG.U.RH;
+            RAM_ME0[REG.S.R] = REG.U.RH;
             REG.S.R -= 1; // move stack pointer to nextposition
             // no flags changed
         }
@@ -6152,9 +6138,9 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.S.R] = REG.V.RL;
+            RAM_ME0[REG.S.R] = REG.V.RL;
             REG.S.R -= 1; // move stack pointer to nextposition
-            RAM[REG.S.R] = REG.V.RH;
+            RAM_ME0[REG.S.R] = REG.V.RH;
             REG.S.R -= 1; // move stack pointer to nextposition
             // no flags changed
         }
@@ -6237,7 +6223,7 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            RAM[REG.S.R] = REG.A;
+            RAM_ME0[REG.S.R] = REG.A;
             REG.S.R -= 1; // move stack pointer to next cell
             // no flags changed
         }

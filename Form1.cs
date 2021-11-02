@@ -6,7 +6,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.Design;
 using System.Windows.Forms;
+using System.IO;
 
 namespace lh5801_Emu
 {
@@ -14,11 +16,23 @@ namespace lh5801_Emu
     public partial class Form1 : Form
     {
         lh5801 CPU = new lh5801();
-        
+        private System.ComponentModel.Design.ByteViewer byteviewer;
+        System.Text.RegularExpressions.Regex isHexSpc = new System.Text.RegularExpressions.Regex("^[a-fA-F0-9\\s]+$");
+        System.Text.RegularExpressions.Regex isHexSpcKey = new System.Text.RegularExpressions.Regex("^[a-fA-F0-9\\s\\cC\\cV\\cX\\b]+$");
+        System.Text.RegularExpressions.Regex isHex = new System.Text.RegularExpressions.Regex("^[a-fA-F0-9]+$");
+        System.Text.RegularExpressions.Regex isHexKey = new System.Text.RegularExpressions.Regex("^[a-fA-F0-9\\cC\\cV\\cX\\b]+$");
+
         public Form1()
         {
             InitializeComponent();
-            //CPU.LDX(0x0102);
+
+            byteviewer = new ByteViewer();
+            byteviewer.Location = new Point(210, 39);
+            byteviewer.Size = new Size(410, 310);
+            byteviewer.SetBytes(CPU.RAM_ME0);
+            byteviewer.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+            this.Controls.Add(byteviewer);
+
             updateUI();
         }
 
@@ -46,17 +60,11 @@ namespace lh5801_Emu
             cbCarry.Checked = CPU.GetCarryFlag();
             cbOverflow.Checked = CPU.GetOverflowFlag();
             cbHalfCarry.Checked = CPU.GetHalfCarryFlag();
+
+            byteviewer.Refresh();
         }
 
-        /// <summary>
-        /// Poor excuse for hex editor
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void btnHexDump_Click(object sender, EventArgs e)
-        {
-            tbHexDump.Text = CPU.HexDump();
-        }
+        #region RUN Controls
 
         /// <summary>
         /// Single step next opcode
@@ -115,19 +123,122 @@ namespace lh5801_Emu
             updateUI();
         }
 
+        #endregion RUN Controls
+
+        #region Registers and HEX Dump
+
         /// <summary>
-        /// Set address code in tBValue is poked into
+        /// Handles all 8 and 16 bit register inputs and validation
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbRegHL_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            char c = e.KeyChar;
+
+            if (c == (char)Keys.Enter)
+            {
+                byte value = (byte)Convert.ToUInt16(((TextBox)sender).Text, 16);
+                ushort valWord = (ushort)Convert.ToUInt16(((TextBox)sender).Text, 16);
+
+                switch (((TextBox)sender).Name)
+                {
+                    case ("tbXH"):
+                        CPU.SetRegXH(value);
+                        break;
+
+                    case ("tbXL"):
+                        CPU.SetRegXL(value);
+                        break;
+
+                    case ("tbYH"):
+                        CPU.SetRegYH(value);
+                        break;
+
+                    case ("tbYL"):
+                        CPU.SetRegYL(value);
+                        break;
+
+                    case ("tbUH"):
+                        CPU.SetRegUH(value);
+                        break;
+
+                    case ("tbUL"):
+                        CPU.SetRegUL(value);
+                        break;
+
+                    case ("tbVH"):
+                        CPU.SetRegVH(value);
+                        break;
+
+                    case ("tbVL"):
+                        CPU.SetRegVL(value);
+                        break;
+
+                    case ("tbA"):
+                        CPU.SetRegA(value);
+                        break;
+
+                    case ("tbP"):
+                        CPU.SetRegP(valWord);
+                        break;
+
+                    case ("tbS"):
+                        CPU.SetRegS(valWord);
+                        break;
+                }
+
+                e.Handled = true;
+                updateUI();
+            }
+            else if (!isHexKey.IsMatch(c.ToString()))
+            {
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Set address code that tBValue is poked into
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void tbAddress_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Enter)
+            char c = e.KeyChar;
+
+            if (c == (char)Keys.Enter)
             {
-                tbValue.Text = CPU.ReadRAM((byte)Convert.ToUInt16(tbAddress.Text, 16)).ToString("X2");
+                e.Handled = true;
+                byteviewer.SetStartLine(Convert.ToUInt16(tbAddress.Text, 16) / 0x10);
+                updateUI();
+            }
+            else if (!isHexKey.IsMatch(c.ToString()))
+            {
                 e.Handled = true;
             }
-            updateUI();
+        }
+
+        /// <summary>
+        /// Validates any texted pasted into text box
+        /// Only hex charecters allowed 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbRegHL_TextChanged(object sender, EventArgs e)
+        {
+            string txt = ((TextBox)sender).Text;
+            bool isValid = false;
+
+            if (string.IsNullOrEmpty(txt))
+            {
+                isValid = false;
+            }
+            else
+            {
+                isValid = isHex.IsMatch(txt);
+            }
+
+            if (!isValid) { ((TextBox)sender).Text = ""; }
         }
 
         /// <summary>
@@ -137,10 +248,11 @@ namespace lh5801_Emu
         /// <param name="e"></param>
         private void tbValue_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Enter)
+            char c = e.KeyChar;
+
+            if (c == (char)Keys.Enter)
             {
                 ushort address = (ushort)(Convert.ToInt16(tbAddress.Text, 16));
-                //byte value = (Byte)(Convert.ToInt16(tbValue.Text, 16));
                 string[] values = tbValue.Text.Split(' ');
                 byte[] memVal = new byte[values.Length];
 
@@ -149,16 +261,67 @@ namespace lh5801_Emu
                     memVal[i] = (byte)(Convert.ToInt16(values[i], 16));
                 }
 
-                CPU.WriteRAM(address, memVal);
+                // write into selected RAM area
+                if (rbME0.Checked)
+                {
+                    CPU.WriteRAM_ME0(address, memVal);
+                }
+                else
+                {
+                    CPU.WriteRAM_ME1(address, memVal);
+                }
+
+                byteviewer.SetStartLine(address / 0x10);
 
                 e.Handled = true;
 
-                tbHexDump.Text = CPU.HexDump();
                 updateUI();
+            }
+            else if (!isHexSpcKey.IsMatch(c.ToString()))
+            {
+                e.Handled = true;
             }
 
         }
 
+        /// <summary>
+        /// Validates any texted pasted into text box
+        /// Only hex charecters and space allowed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbValue_TextChanged(object sender, EventArgs e)
+        {
+            string txt = tbValue.Text;
+            bool isValid = false;
+
+            if (string.IsNullOrEmpty(txt))
+            {
+                isValid = false;
+            }
+            else
+            {
+                isValid = isHexSpc.IsMatch(txt);
+            }
+
+            if (!isValid) { tbValue.Text = ""; }
+        }
+
+        private void rbME0_CheckedChanged(object sender, EventArgs e)
+        {
+            byteviewer.SetBytes(CPU.RAM_ME0);
+            updateUI();
+        }
+
+        private void rbME1_CheckedChanged(object sender, EventArgs e)
+        {
+            byteviewer.SetBytes(CPU.RAM_ME1);
+            updateUI();
+        }
+
+
+
+        #endregion Registers and HEX Dump
 
         #region Flags Check Boxes
 
@@ -212,126 +375,79 @@ namespace lh5801_Emu
             CPU.SetHalfCarryFlag(cbCarry.Checked);
         }
 
+
+
+
         #endregion Flags Check Boxes
 
-
-        #region Registers Text Boxes
-
-        private void tbXH_KeyPress(object sender, KeyPressEventArgs e)
+        /// <summary>
+        /// Load a binary file into selected RAM bank
+        /// starting at 'Address'
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnLoad_Click(object sender, EventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Enter)
+            System.Windows.Forms.OpenFileDialog openFileDialog1;
+            openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            openFileDialog1.ShowDialog();
+
+            string inputFile = openFileDialog1.FileName;
+
+            FileStream inputfs = new FileStream(inputFile, FileMode.Open, FileAccess.Read);
+            BinaryReader fileReader = new BinaryReader(inputfs);
+            long fileSize = inputfs.Length;
+            ushort targetAddress = (ushort)Convert.ToInt16(tbAddress.Text, 16);
+            ushort spaceLeft = (ushort)(0xFFFF - targetAddress);
+
+            if (fileSize > spaceLeft )
             {
-                CPU.SetRegXH((byte)Convert.ToUInt16(tbXH.Text, 16));
-                e.Handled = true;
-                updateUI();
+                string message = "File too large";
+                string title = "Oops!";
+                MessageBox.Show(message, title);
             }
+            else
+            {
+                for (long i = 0; i < fileSize; i++)
+                {
+                    if (rbME0.Checked)
+                    {
+                        CPU.RAM_ME0[targetAddress + i] = fileReader.ReadByte();
+                    }
+                    else
+                    {
+                        CPU.RAM_ME1[targetAddress + i] = fileReader.ReadByte();
+                    }
+                    
+                }
+                updateUI();
+            }        
         }
 
-        private void tbXL_KeyPress(object sender, KeyPressEventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Enter)
+            System.Windows.Forms.SaveFileDialog saveFileDialog1;
+            saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            saveFileDialog1.ShowDialog();
+            string outputFile = saveFileDialog1.FileName;
+
+            long fileSize = 0xFFFF;
+
+            FileStream outputfs = new FileStream(outputFile, FileMode.Create);
+            BinaryWriter fileWriter = new BinaryWriter(outputfs);
+
+            for (long i = 0; i < fileSize; i++)
             {
-                CPU.SetRegXL((byte)Convert.ToUInt16(tbXL.Text, 16));
-                e.Handled = true;
-                updateUI();
+                if (rbME0.Checked)
+                {
+                    fileWriter.Write((byte)CPU.RAM_ME0[i]);
+                }
+                else
+                {
+                    fileWriter.Write((byte)CPU.RAM_ME1[i]);
+                }
             }
         }
-
-        private void tbYH_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegYH((byte)Convert.ToUInt16(tbYL.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbYL_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegYL((byte)Convert.ToUInt16(tbYL.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbUH_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegUH((byte)Convert.ToUInt16(tbUH.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbUL_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegUL((byte)Convert.ToUInt16(tbUL.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbVH_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegVL((byte)Convert.ToUInt16(tbVL.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbVL_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegVL((byte)Convert.ToUInt16(tbVL.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbA_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegA((byte)Convert.ToUInt16(tbA.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbP_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegP((ushort)Convert.ToUInt16(tbP.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-        private void tbS_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                CPU.SetRegS((ushort)Convert.ToUInt16(tbS.Text, 16));
-                e.Handled = true;
-                updateUI();
-            }
-        }
-
-
-
-
-        #endregion Registers Text Boxes
-
 
     }
 }
