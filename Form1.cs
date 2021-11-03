@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,9 +24,16 @@ namespace lh5801_Emu
         System.Text.RegularExpressions.Regex isHex = new System.Text.RegularExpressions.Regex("^[a-fA-F0-9]+$");
         System.Text.RegularExpressions.Regex isHexKey = new System.Text.RegularExpressions.Regex("^[a-fA-F0-9\\cC\\cV\\cX\\b]+$");
 
+        private readonly SynchronizationContext synchronizationContext;
+        private DateTime previousTime = DateTime.Now;
+
+        /// <summary>
+        /// You guessed it, the contructor!
+        /// </summary>
         public Form1()
         {
             InitializeComponent();
+            synchronizationContext = SynchronizationContext.Current;
 
             byteviewer = new ByteViewer();
             byteviewer.Location = new Point(210, 39);
@@ -40,28 +49,38 @@ namespace lh5801_Emu
         /// <summary>
         /// Update Text Boxes and Check Boxes
         /// </summary>
-        private void updateUI()
+        private void updateUI(int value = 0)
         {
-            tbXH.Text = CPU.REG.X.RH.ToString("X2");
-            tbXL.Text = CPU.REG.X.RL.ToString("X2");
-            tbYH.Text = CPU.REG.Y.RH.ToString("X2");
-            tbYL.Text = CPU.REG.Y.RL.ToString("X2");
-            tbUH.Text = CPU.REG.U.RH.ToString("X2");
-            tbUL.Text = CPU.REG.U.RL.ToString("X2");
-            tbVH.Text = CPU.REG.V.RH.ToString("X2");
-            tbVL.Text = CPU.REG.V.RL.ToString("X2");
-            tbA.Text = CPU.REG.A.ToString("X2");
-            tbS.Text = CPU.REG.S.R.ToString("X4");
-            tbP.Text = CPU.REG.P.R.ToString("X4");
+            DateTime timeNow = DateTime.Now;
 
-            cbCarry.Checked = CPU.GetCarryFlag();
-            cbInteruptEnable.Checked = CPU.GetInterruptEnableFlag();
-            cbZero.Checked = CPU.GetZeroFlag();
-            cbCarry.Checked = CPU.GetCarryFlag();
-            cbOverflow.Checked = CPU.GetOverflowFlag();
-            cbHalfCarry.Checked = CPU.GetHalfCarryFlag();
+            if ((DateTime.Now - previousTime).Milliseconds <= 50) return;
 
-            byteviewer.Refresh();
+            synchronizationContext.Post(new SendOrPostCallback(o =>
+            {
+                tbXH.Text = CPU.REG.X.RH.ToString("X2");
+                tbXL.Text = CPU.REG.X.RL.ToString("X2");
+                tbYH.Text = CPU.REG.Y.RH.ToString("X2");
+                tbYL.Text = CPU.REG.Y.RL.ToString("X2");
+                tbUH.Text = CPU.REG.U.RH.ToString("X2");
+                tbUL.Text = CPU.REG.U.RL.ToString("X2");
+                tbVH.Text = CPU.REG.V.RH.ToString("X2");
+                tbVL.Text = CPU.REG.V.RL.ToString("X2");
+                tbA.Text = CPU.REG.A.ToString("X2");
+                tbS.Text = CPU.REG.S.R.ToString("X4");
+                tbP.Text = CPU.REG.P.R.ToString("X4");
+                tbAddress.Text = tbAddress.Text.ToUpper();
+
+                cbCarry.Checked = CPU.GetCarryFlag();
+                cbInteruptEnable.Checked = CPU.GetInterruptEnableFlag();
+                cbZero.Checked = CPU.GetZeroFlag();
+                cbCarry.Checked = CPU.GetCarryFlag();
+                cbOverflow.Checked = CPU.GetOverflowFlag();
+                cbHalfCarry.Checked = CPU.GetHalfCarryFlag();
+
+                byteviewer.Refresh();
+            }), value);
+            
+            previousTime = timeNow;
         }
 
         #region RUN Controls
@@ -83,11 +102,24 @@ namespace lh5801_Emu
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnRun_Click(object sender, EventArgs e)
+        private async void btnRun_Click(object sender, EventArgs e)
         {
             CPU.SingleStep = false;
-            CPU.Run();
-            updateUI();
+            btnRun.Enabled = false;
+
+            //CPU.Run();
+            //updateUI();
+
+            await Task.Run(() =>
+            {
+                do
+                {
+                    CPU.Run();
+                    updateUI();
+                } while (!CPU.SingleStep);
+            });
+
+            btnRun.Enabled = true;
         }
 
         /// <summary>

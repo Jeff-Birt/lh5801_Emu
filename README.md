@@ -29,3 +29,8 @@ Most opcodes should work properly a few have not been implemented yet
 as testing on actual hardware needs to be done.
 
 ![Prerelease UI](/Images/lh5801_Emu_01.png)
+
+Overly simplistic change log:
+03/11/2021 - 1) Fixed bug where Carry Flag was carried into INC and DEC
+             2) Added very simple threading to allow UI to break a running CPU.
+             

@@ -1235,11 +1235,11 @@ namespace lh5801_Emu
         /// </summary>
         public void Run()
         {
-            do
-            {
+            //do
+            //{
                 byte opcode = RAM_ME0[REG.P.R];
                 delegatesTbl1[opcode].DynamicInvoke();
-            } while (!SingleStep);
+            //} while (!SingleStep);
 
         }
 
@@ -2052,6 +2052,7 @@ namespace lh5801_Emu
         private void INC_XL()
         {
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.X.RL = Add(this.REG.X.RL, (byte)0x01);
             // flags set by subtraction function
         }
@@ -2262,6 +2263,7 @@ namespace lh5801_Emu
         private void INC_YL()
         {
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.Y.RL = Add(this.REG.Y.RL, (byte)0x01);
             // flags set by subtraction function
         }
@@ -2472,6 +2474,7 @@ namespace lh5801_Emu
         private void INC_UL()
         {
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.U.RL = Add(this.REG.U.RL, (byte)0x01);
             // flags set by subtraction function
         }
@@ -2682,6 +2685,7 @@ namespace lh5801_Emu
         private void INC_VL()
         {
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.V.RL = Add(this.REG.V.RL, (byte)0x01);
             // flags set by subtraction function
         }
@@ -4272,6 +4276,7 @@ namespace lh5801_Emu
         private void INC_A()
         {
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.A = Add(this.REG.A, (byte)0x01);
             // flags set by subtraction function
         }
@@ -5396,6 +5401,7 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.X.RH = Add(this.REG.X.RH, (byte)0x01);
             // flags set by subtraction function
         }
@@ -5530,6 +5536,7 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.Y.RH = Add(this.REG.Y.RH, (byte)0x01);
             // flags set by subtraction function
         }
@@ -5652,6 +5659,7 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.U.RH = Add(this.REG.U.RH, (byte)0x01);
             // flags set by subtraction function
         }
@@ -5751,6 +5759,7 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
+            FLAGS.C = false;
             this.REG.V.RH = Add(this.REG.V.RH, (byte)0x01);
             // flags set by subtraction function
         }
