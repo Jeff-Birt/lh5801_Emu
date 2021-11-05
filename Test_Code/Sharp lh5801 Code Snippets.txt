@@ -1,0 +1,32 @@
+test1.lh5801
+
+LDI    A,$AA
+INC    A
+STA    XL
+HLT
+
+Bytes: B5 AA DD 0A FD B1
+
+
+
+test_8D7E.lh5801
+
+A=14~16. A = A - 16. A = 14->(1c FE), A = 15->(1c FF), A = 16->(0c 00)
+
+8D7E    SBI	A,16            
+8D80    STA	UL              
+8D81    LDA	(USING_F/F)     ; Using format, presence of decimal point, comma,etc
+8D84    ANI	A,1F                       
+8D86    INC	UL              
+8D87    INC	UL              
+8D88    INC	UL              
+8D89    SHR                     
+8D8A    BCS+    BRANCH_8D8E     
+                        
+8D8C    BZR-    BRANCH_8D86     
+8D8E    LDA	UL  
+8D8F	HLT     
+
+Bytes: B1 16   2A   A5 78 95   B9 1F   60   60   60   D5   83 02   99 08   24 FD B1
+
+IF A == 14 USING F/F = 0  -> UL = 

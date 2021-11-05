@@ -68,13 +68,18 @@
             this.rbME1 = new System.Windows.Forms.RadioButton();
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
+            this.tbCycles = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.tbStack = new System.Windows.Forms.TextBox();
+            this.cbStackDispW = new System.Windows.Forms.CheckBox();
+            this.label15 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(40, 92);
+            this.label1.Location = new System.Drawing.Point(20, 94);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(35, 15);
             this.label1.TabIndex = 1;
@@ -84,7 +89,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.label4.Location = new System.Drawing.Point(18, 18);
+            this.label4.Location = new System.Drawing.Point(17, 18);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(154, 15);
             this.label4.TabIndex = 10;
@@ -94,7 +99,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(40, 118);
+            this.label5.Location = new System.Drawing.Point(20, 120);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(35, 15);
             this.label5.TabIndex = 12;
@@ -104,7 +109,7 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(40, 144);
+            this.label6.Location = new System.Drawing.Point(20, 146);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(35, 15);
             this.label6.TabIndex = 14;
@@ -114,7 +119,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(40, 170);
+            this.label7.Location = new System.Drawing.Point(20, 172);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(35, 15);
             this.label7.TabIndex = 16;
@@ -124,7 +129,7 @@
             // 
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.Location = new System.Drawing.Point(40, 196);
+            this.label8.Location = new System.Drawing.Point(20, 198);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(35, 15);
             this.label8.TabIndex = 18;
@@ -142,7 +147,7 @@
             // tbAddress
             // 
             this.tbAddress.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbAddress.Location = new System.Drawing.Point(230, 384);
+            this.tbAddress.Location = new System.Drawing.Point(237, 374);
             this.tbAddress.Name = "tbAddress";
             this.tbAddress.Size = new System.Drawing.Size(41, 23);
             this.tbAddress.TabIndex = 24;
@@ -152,7 +157,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(227, 368);
+            this.label10.Location = new System.Drawing.Point(234, 358);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(45, 13);
             this.label10.TabIndex = 25;
@@ -161,7 +166,7 @@
             // tbValue
             // 
             this.tbValue.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbValue.Location = new System.Drawing.Point(280, 384);
+            this.tbValue.Location = new System.Drawing.Point(287, 374);
             this.tbValue.Name = "tbValue";
             this.tbValue.Size = new System.Drawing.Size(397, 23);
             this.tbValue.TabIndex = 26;
@@ -172,7 +177,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(277, 368);
+            this.label11.Location = new System.Drawing.Point(284, 358);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(34, 13);
             this.label11.TabIndex = 27;
@@ -181,9 +186,9 @@
             // btnReset
             // 
             this.btnReset.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(234)))), ((int)(((byte)(56)))), ((int)(((byte)(26)))));
-            this.btnReset.Location = new System.Drawing.Point(21, 406);
+            this.btnReset.Location = new System.Drawing.Point(21, 408);
             this.btnReset.Name = "btnReset";
-            this.btnReset.Size = new System.Drawing.Size(68, 23);
+            this.btnReset.Size = new System.Drawing.Size(65, 25);
             this.btnReset.TabIndex = 30;
             this.btnReset.Text = "RESET";
             this.btnReset.UseVisualStyleBackColor = false;
@@ -243,7 +248,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(83, 71);
+            this.label12.Location = new System.Drawing.Point(60, 73);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(21, 15);
             this.label12.TabIndex = 36;
@@ -253,7 +258,7 @@
             // 
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(108, 71);
+            this.label13.Location = new System.Drawing.Point(82, 73);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(21, 15);
             this.label13.TabIndex = 37;
@@ -262,7 +267,7 @@
             // tbYH
             // 
             this.tbYH.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbYH.Location = new System.Drawing.Point(81, 115);
+            this.tbYH.Location = new System.Drawing.Point(61, 117);
             this.tbYH.Name = "tbYH";
             this.tbYH.Size = new System.Drawing.Size(21, 23);
             this.tbYH.TabIndex = 40;
@@ -273,7 +278,7 @@
             // tbYL
             // 
             this.tbYL.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbYL.Location = new System.Drawing.Point(101, 115);
+            this.tbYL.Location = new System.Drawing.Point(81, 117);
             this.tbYL.Name = "tbYL";
             this.tbYL.Size = new System.Drawing.Size(21, 23);
             this.tbYL.TabIndex = 39;
@@ -284,7 +289,7 @@
             // tbUH
             // 
             this.tbUH.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbUH.Location = new System.Drawing.Point(81, 141);
+            this.tbUH.Location = new System.Drawing.Point(61, 143);
             this.tbUH.Name = "tbUH";
             this.tbUH.Size = new System.Drawing.Size(21, 23);
             this.tbUH.TabIndex = 42;
@@ -295,7 +300,7 @@
             // tbUL
             // 
             this.tbUL.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbUL.Location = new System.Drawing.Point(101, 141);
+            this.tbUL.Location = new System.Drawing.Point(81, 143);
             this.tbUL.Name = "tbUL";
             this.tbUL.Size = new System.Drawing.Size(21, 23);
             this.tbUL.TabIndex = 41;
@@ -306,7 +311,7 @@
             // tbVH
             // 
             this.tbVH.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbVH.Location = new System.Drawing.Point(81, 167);
+            this.tbVH.Location = new System.Drawing.Point(61, 169);
             this.tbVH.Name = "tbVH";
             this.tbVH.Size = new System.Drawing.Size(21, 23);
             this.tbVH.TabIndex = 44;
@@ -317,7 +322,7 @@
             // tbVL
             // 
             this.tbVL.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbVL.Location = new System.Drawing.Point(101, 167);
+            this.tbVL.Location = new System.Drawing.Point(81, 169);
             this.tbVL.Name = "tbVL";
             this.tbVL.Size = new System.Drawing.Size(21, 23);
             this.tbVL.TabIndex = 43;
@@ -328,7 +333,7 @@
             // tbXL
             // 
             this.tbXL.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbXL.Location = new System.Drawing.Point(101, 89);
+            this.tbXL.Location = new System.Drawing.Point(81, 91);
             this.tbXL.Name = "tbXL";
             this.tbXL.Size = new System.Drawing.Size(21, 23);
             this.tbXL.TabIndex = 46;
@@ -340,7 +345,7 @@
             // tbXH
             // 
             this.tbXH.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbXH.Location = new System.Drawing.Point(81, 89);
+            this.tbXH.Location = new System.Drawing.Point(61, 91);
             this.tbXH.Name = "tbXH";
             this.tbXH.Size = new System.Drawing.Size(21, 23);
             this.tbXH.TabIndex = 47;
@@ -351,22 +356,24 @@
             // tbP
             // 
             this.tbP.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbP.Location = new System.Drawing.Point(81, 232);
+            this.tbP.Location = new System.Drawing.Point(61, 221);
             this.tbP.Name = "tbP";
-            this.tbP.Size = new System.Drawing.Size(42, 23);
+            this.tbP.Size = new System.Drawing.Size(41, 23);
             this.tbP.TabIndex = 53;
             this.tbP.Text = "0000";
+            this.tbP.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.tbP.TextChanged += new System.EventHandler(this.tbRegHL_TextChanged);
             this.tbP.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbRegHL_KeyPress);
             // 
             // tbS
             // 
             this.tbS.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbS.Location = new System.Drawing.Point(81, 258);
+            this.tbS.Location = new System.Drawing.Point(123, 91);
             this.tbS.Name = "tbS";
-            this.tbS.Size = new System.Drawing.Size(42, 23);
+            this.tbS.Size = new System.Drawing.Size(40, 23);
             this.tbS.TabIndex = 51;
             this.tbS.Text = "0000";
+            this.tbS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.tbS.TextChanged += new System.EventHandler(this.tbRegHL_TextChanged);
             this.tbS.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbRegHL_KeyPress);
             // 
@@ -374,17 +381,17 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(40, 261);
+            this.label2.Location = new System.Drawing.Point(122, 73);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(14, 15);
+            this.label2.Size = new System.Drawing.Size(42, 15);
             this.label2.TabIndex = 49;
-            this.label2.Text = "S";
+            this.label2.Text = "Stack";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(40, 235);
+            this.label3.Location = new System.Drawing.Point(40, 225);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(14, 15);
             this.label3.TabIndex = 48;
@@ -393,9 +400,9 @@
             // btnRun
             // 
             this.btnRun.BackColor = System.Drawing.Color.Chartreuse;
-            this.btnRun.Location = new System.Drawing.Point(21, 348);
+            this.btnRun.Location = new System.Drawing.Point(96, 345);
             this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(151, 23);
+            this.btnRun.Size = new System.Drawing.Size(75, 25);
             this.btnRun.TabIndex = 54;
             this.btnRun.Text = "RUN";
             this.btnRun.UseVisualStyleBackColor = false;
@@ -404,7 +411,7 @@
             // tbA
             // 
             this.tbA.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbA.Location = new System.Drawing.Point(101, 193);
+            this.tbA.Location = new System.Drawing.Point(81, 195);
             this.tbA.Name = "tbA";
             this.tbA.Size = new System.Drawing.Size(21, 23);
             this.tbA.TabIndex = 55;
@@ -416,9 +423,9 @@
             // btnStep
             // 
             this.btnStep.BackColor = System.Drawing.Color.YellowGreen;
-            this.btnStep.Location = new System.Drawing.Point(21, 314);
+            this.btnStep.Location = new System.Drawing.Point(21, 345);
             this.btnStep.Name = "btnStep";
-            this.btnStep.Size = new System.Drawing.Size(151, 23);
+            this.btnStep.Size = new System.Drawing.Size(65, 25);
             this.btnStep.TabIndex = 56;
             this.btnStep.Text = "STEP";
             this.btnStep.UseVisualStyleBackColor = false;
@@ -427,9 +434,9 @@
             // btnResetAll
             // 
             this.btnResetAll.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(234)))), ((int)(((byte)(56)))), ((int)(((byte)(26)))));
-            this.btnResetAll.Location = new System.Drawing.Point(95, 406);
+            this.btnResetAll.Location = new System.Drawing.Point(92, 408);
             this.btnResetAll.Name = "btnResetAll";
-            this.btnResetAll.Size = new System.Drawing.Size(76, 23);
+            this.btnResetAll.Size = new System.Drawing.Size(80, 25);
             this.btnResetAll.TabIndex = 57;
             this.btnResetAll.Text = "RESET ALL";
             this.btnResetAll.UseVisualStyleBackColor = false;
@@ -440,7 +447,7 @@
             this.btnPause.BackColor = System.Drawing.Color.Yellow;
             this.btnPause.Location = new System.Drawing.Point(21, 377);
             this.btnPause.Name = "btnPause";
-            this.btnPause.Size = new System.Drawing.Size(151, 23);
+            this.btnPause.Size = new System.Drawing.Size(150, 25);
             this.btnPause.TabIndex = 58;
             this.btnPause.Text = "PAUSE";
             this.btnPause.UseVisualStyleBackColor = false;
@@ -472,7 +479,7 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(230, 426);
+            this.btnLoad.Location = new System.Drawing.Point(236, 407);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(75, 23);
             this.btnLoad.TabIndex = 61;
@@ -482,7 +489,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(316, 426);
+            this.btnSave.Location = new System.Drawing.Point(322, 407);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 62;
@@ -490,11 +497,67 @@
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
+            // tbCycles
+            // 
+            this.tbCycles.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tbCycles.Location = new System.Drawing.Point(60, 275);
+            this.tbCycles.Name = "tbCycles";
+            this.tbCycles.Size = new System.Drawing.Size(42, 23);
+            this.tbCycles.TabIndex = 63;
+            this.tbCycles.Text = "0000";
+            this.tbCycles.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.Location = new System.Drawing.Point(6, 278);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(49, 15);
+            this.label14.TabIndex = 64;
+            this.label14.Text = "Cycles";
+            // 
+            // tbStack
+            // 
+            this.tbStack.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tbStack.Location = new System.Drawing.Point(123, 120);
+            this.tbStack.Multiline = true;
+            this.tbStack.Name = "tbStack";
+            this.tbStack.Size = new System.Drawing.Size(40, 127);
+            this.tbStack.TabIndex = 65;
+            this.tbStack.Text = "0000";
+            this.tbStack.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // cbStackDispW
+            // 
+            this.cbStackDispW.AutoSize = true;
+            this.cbStackDispW.Location = new System.Drawing.Point(148, 253);
+            this.cbStackDispW.Name = "cbStackDispW";
+            this.cbStackDispW.Size = new System.Drawing.Size(15, 14);
+            this.cbStackDispW.TabIndex = 66;
+            this.cbStackDispW.UseVisualStyleBackColor = true;
+            this.cbStackDispW.CheckedChanged += new System.EventHandler(this.cbStackDispW_CheckedChanged);
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label15.Location = new System.Drawing.Point(107, 252);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(35, 15);
+            this.label15.TabIndex = 67;
+            this.label15.Text = "8/16";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(884, 461);
+            this.Controls.Add(this.label15);
+            this.Controls.Add(this.cbStackDispW);
+            this.Controls.Add(this.tbStack);
+            this.Controls.Add(this.label14);
+            this.Controls.Add(this.tbCycles);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.rbME1);
@@ -583,6 +646,11 @@
         private System.Windows.Forms.RadioButton rbME1;
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.TextBox tbCycles;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.TextBox tbStack;
+        private System.Windows.Forms.CheckBox cbStackDispW;
+        private System.Windows.Forms.Label label15;
     }
 }
 

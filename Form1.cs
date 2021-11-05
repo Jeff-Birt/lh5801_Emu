@@ -7,7 +7,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel.Design;
 using System.Windows.Forms;
 using System.IO;
@@ -28,7 +27,7 @@ namespace lh5801_Emu
         private DateTime previousTime = DateTime.Now;
 
         /// <summary>
-        /// You guessed it, the contructor!
+        /// You guessed it, the constructor!
         /// </summary>
         public Form1()
         {
@@ -77,6 +76,9 @@ namespace lh5801_Emu
                 cbOverflow.Checked = CPU.GetOverflowFlag();
                 cbHalfCarry.Checked = CPU.GetHalfCarryFlag();
 
+                tbCycles.Text = CPU.tick.ToString("X4");
+                tbStack.Text = CPU.GetStack();
+
                 byteviewer.Refresh();
             }), value);
             
@@ -106,16 +108,14 @@ namespace lh5801_Emu
         {
             CPU.SingleStep = false;
             btnRun.Enabled = false;
-
-            //CPU.Run();
-            //updateUI();
+            CPU.tick = 0;
 
             await Task.Run(() =>
             {
                 do
                 {
                     CPU.Run();
-                    updateUI();
+                    updateUI(); // eventually send frequency ?
                 } while (!CPU.SingleStep);
             });
 
@@ -176,47 +176,47 @@ namespace lh5801_Emu
                 switch (((TextBox)sender).Name)
                 {
                     case ("tbXH"):
-                        CPU.SetRegXH(value);
+                        CPU.REG.X.RH = (value);
                         break;
 
                     case ("tbXL"):
-                        CPU.SetRegXL(value);
+                        CPU.REG.X.RL = (value);
                         break;
 
                     case ("tbYH"):
-                        CPU.SetRegYH(value);
+                        CPU.REG.Y.RH = (value);
                         break;
 
                     case ("tbYL"):
-                        CPU.SetRegYL(value);
+                        CPU.REG.Y.RL = (value);
                         break;
 
                     case ("tbUH"):
-                        CPU.SetRegUH(value);
+                        CPU.REG.U.RH = (value);
                         break;
 
                     case ("tbUL"):
-                        CPU.SetRegUL(value);
+                        CPU.REG.U.RL = (value);
                         break;
 
                     case ("tbVH"):
-                        CPU.SetRegVH(value);
+                        CPU.REG.V.RH = (value);
                         break;
 
                     case ("tbVL"):
-                        CPU.SetRegVL(value);
+                        CPU.REG.V.RL = (value);
                         break;
 
                     case ("tbA"):
-                        CPU.SetRegA(value);
+                        CPU.REG.A = (value);
                         break;
 
                     case ("tbP"):
-                        CPU.SetRegP(valWord);
+                        CPU.REG.P.R = (valWord);
                         break;
 
                     case ("tbS"):
-                        CPU.SetRegS(valWord);
+                        CPU.REG.S.R = (valWord);
                         break;
                 }
 
@@ -274,36 +274,50 @@ namespace lh5801_Emu
         }
 
         /// <summary>
-        /// 
+        /// Parse data entered into tbValue and poke into RAM
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void tbValue_KeyPress(object sender, KeyPressEventArgs e)
         {
+            bool isValid = true;
             char c = e.KeyChar;
 
             if (c == (char)Keys.Enter)
             {
-                ushort address = (ushort)(Convert.ToInt16(tbAddress.Text, 16));
+                ushort  address = (ushort)(Convert.ToInt16(tbAddress.Text, 16));
                 string[] values = tbValue.Text.Split(' ');
-                byte[] memVal = new byte[values.Length];
+                byte[]   memVal = new byte[values.Length];
 
                 for (int i=0; i < values.Length; i++)
                 {
-                    memVal[i] = (byte)(Convert.ToInt16(values[i], 16));
+                    if (values[i].Length < 3)
+                    {
+                        memVal[i] = (byte)(Convert.ToInt16(values[i], 16));
+                    }
+                    else
+                    {
+                        string message = values[i] + " is > $FF";
+                        MessageBox.Show(message, "Oops!");
+                        i = values.Length;
+                        isValid = false;
+                    } 
                 }
 
-                // write into selected RAM area
-                if (rbME0.Checked)
+                // write into selected RAM area if input valid
+                if (isValid)
                 {
-                    CPU.WriteRAM_ME0(address, memVal);
-                }
-                else
-                {
-                    CPU.WriteRAM_ME1(address, memVal);
-                }
+                    if (rbME0.Checked)
+                    {
+                        CPU.WriteRAM_ME0(address, memVal);
+                    }
+                    else
+                    {
+                        CPU.WriteRAM_ME1(address, memVal);
+                    }
 
-                byteviewer.SetStartLine(address / 0x10);
+                    byteviewer.SetStartLine(address / 0x10);
+                }
 
                 e.Handled = true;
 
@@ -339,19 +353,38 @@ namespace lh5801_Emu
             if (!isValid) { tbValue.Text = ""; }
         }
 
+        /// <summary>
+        /// Toggle between ME0 and ME1 hex dump
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void rbME0_CheckedChanged(object sender, EventArgs e)
         {
             byteviewer.SetBytes(CPU.RAM_ME0);
             updateUI();
         }
 
+        /// <summary>
+        /// Toggle between ME0 and ME1 hex dump
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void rbME1_CheckedChanged(object sender, EventArgs e)
         {
             byteviewer.SetBytes(CPU.RAM_ME1);
             updateUI();
         }
 
-
+        /// <summary>
+        /// Set stack display width
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cbStackDispW_CheckedChanged(object sender, EventArgs e)
+        {
+            CPU.StackWidth8 = cbStackDispW.Checked;
+            updateUI();
+        }
 
         #endregion Registers and HEX Dump
 
@@ -456,6 +489,11 @@ namespace lh5801_Emu
             }        
         }
 
+        /// <summary>
+        /// Save entire ME0 or ME1 to binary file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnSave_Click(object sender, EventArgs e)
         {
             System.Windows.Forms.SaveFileDialog saveFileDialog1;
