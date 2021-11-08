@@ -25,6 +25,7 @@ namespace lh5801_Emu
 
         private readonly SynchronizationContext synchronizationContext;
         private DateTime previousTime = DateTime.Now;
+        uint lastTick = 0; // used to keep track of clock speed
 
         /// <summary>
         /// You guessed it, the constructor!
@@ -35,8 +36,8 @@ namespace lh5801_Emu
             synchronizationContext = SynchronizationContext.Current;
 
             byteviewer = new ByteViewer();
-            byteviewer.Location = new Point(210, 39);
-            byteviewer.Size = new Size(410, 310);
+            byteviewer.Location = new Point(215, 39);
+            byteviewer.Size = new Size(410, 410);
             byteviewer.SetBytes(CPU.RAM_ME0);
             byteviewer.Anchor = AnchorStyles.Right | AnchorStyles.Top;
             this.Controls.Add(byteviewer);
@@ -52,7 +53,7 @@ namespace lh5801_Emu
         {
             DateTime timeNow = DateTime.Now;
 
-            if ((DateTime.Now - previousTime).Milliseconds <= 50) return;
+            if ((DateTime.Now - previousTime).Milliseconds <= 100) return;
 
             synchronizationContext.Post(new SendOrPostCallback(o =>
             {
@@ -76,12 +77,15 @@ namespace lh5801_Emu
                 cbOverflow.Checked = CPU.GetOverflowFlag();
                 cbHalfCarry.Checked = CPU.GetHalfCarryFlag();
 
-                tbCycles.Text = CPU.tick.ToString("X4");
+                lastTick = (uint)Math.Abs(lastTick - CPU.tick);
+                lblCPU_Spd.Text = ((float)lastTick / 10000000).ToString("0.00");
+                tbCycles.Text = ((ushort)CPU.tick).ToString("X4");
+                lastTick = CPU.tick;
                 tbStack.Text = CPU.GetStack();
 
                 byteviewer.Refresh();
             }), value);
-            
+
             previousTime = timeNow;
         }
 
@@ -120,6 +124,7 @@ namespace lh5801_Emu
             });
 
             btnRun.Enabled = true;
+            tmrUpdate.Enabled = true;
         }
 
         /// <summary>
@@ -153,6 +158,17 @@ namespace lh5801_Emu
         {
             CPU.Reset(true);
             updateUI();
+        }
+
+        /// <summary>
+        /// Crude way to get an UI update after a single step forced stop
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tmrUpdate_Tick(object sender, EventArgs e)
+        {
+            updateUI();
+            tmrUpdate.Enabled = false;
         }
 
         #endregion RUN Controls
@@ -217,6 +233,22 @@ namespace lh5801_Emu
 
                     case ("tbS"):
                         CPU.REG.S.R = (valWord);
+                        break;
+
+                    case ("tbBP1"):
+                        updateBreakpoints();
+                        break;
+
+                    case ("tbBP2"):
+                        updateBreakpoints();
+                        break;
+
+                    case ("tbBP3"):
+                        updateBreakpoints();
+                        break;
+
+                    case ("tbBP4"):
+                        updateBreakpoints();
                         break;
                 }
 
@@ -285,11 +317,11 @@ namespace lh5801_Emu
 
             if (c == (char)Keys.Enter)
             {
-                ushort  address = (ushort)(Convert.ToInt16(tbAddress.Text, 16));
+                ushort address = (ushort)(Convert.ToInt16(tbAddress.Text, 16));
                 string[] values = tbValue.Text.Split(' ');
-                byte[]   memVal = new byte[values.Length];
+                byte[] memVal = new byte[values.Length];
 
-                for (int i=0; i < values.Length; i++)
+                for (int i = 0; i < values.Length; i++)
                 {
                     if (values[i].Length < 3)
                     {
@@ -301,7 +333,7 @@ namespace lh5801_Emu
                         MessageBox.Show(message, "Oops!");
                         i = values.Length;
                         isValid = false;
-                    } 
+                    }
                 }
 
                 // write into selected RAM area if input valid
@@ -386,6 +418,35 @@ namespace lh5801_Emu
             updateUI();
         }
 
+        /// <summary>
+        /// calls updateBreakpoints to 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cbBP_CheckedChanged(object sender, EventArgs e)
+        {
+            updateBreakpoints();
+        }
+
+        /// <summary>
+        /// Update all breakpoints at once
+        /// </summary>
+        private void updateBreakpoints()
+        {
+            CPU.BreakPoints[0] = new lh5801.BreakPoint(((ushort)Convert.ToUInt16(tbBP1.Text, 16)), 
+                cbBP1.Checked);
+            tbBP1.Text = tbBP1.Text.ToUpper();
+            CPU.BreakPoints[1] = new lh5801.BreakPoint(((ushort)Convert.ToUInt16(tbBP2.Text, 16)), 
+                cbBP2.Checked);
+            tbBP2.Text = tbBP2.Text.ToUpper();
+            CPU.BreakPoints[2] = new lh5801.BreakPoint(((ushort)Convert.ToUInt16(tbBP3.Text, 16)), 
+                cbBP3.Checked);
+            tbBP3.Text = tbBP3.Text.ToUpper();
+            CPU.BreakPoints[3] = new lh5801.BreakPoint(((ushort)Convert.ToUInt16(tbBP4.Text, 16)), 
+                cbBP4.Checked);
+            tbBP4.Text = tbBP4.Text.ToUpper();
+        }
+
         #endregion Registers and HEX Dump
 
         #region Flags Check Boxes
@@ -445,6 +506,8 @@ namespace lh5801_Emu
 
         #endregion Flags Check Boxes
 
+        #region Load / Save
+
         /// <summary>
         /// Load a binary file into selected RAM bank
         /// starting at 'Address'
@@ -465,7 +528,7 @@ namespace lh5801_Emu
             ushort targetAddress = (ushort)Convert.ToInt16(tbAddress.Text, 16);
             ushort spaceLeft = (ushort)(0xFFFF - targetAddress);
 
-            if (fileSize > spaceLeft )
+            if (fileSize > spaceLeft)
             {
                 string message = "File too large";
                 string title = "Oops!";
@@ -483,10 +546,10 @@ namespace lh5801_Emu
                     {
                         CPU.RAM_ME1[targetAddress + i] = fileReader.ReadByte();
                     }
-                    
+
                 }
-                updateUI();
-            }        
+                tmrUpdate.Enabled = true;
+            }
         }
 
         /// <summary>
@@ -517,7 +580,12 @@ namespace lh5801_Emu
                     fileWriter.Write((byte)CPU.RAM_ME1[i]);
                 }
             }
+
+            tmrUpdate.Enabled = true;
         }
+
+        #endregion Load / Save
+
 
     }
 }

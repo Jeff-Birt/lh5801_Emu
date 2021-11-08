@@ -93,18 +93,31 @@ namespace lh5801_Emu
             public bool DISP;   // LCD on/off control
         }
 
+        public struct BreakPoint
+        {
+            public ushort Address;
+            public bool Enabled;
+
+            public BreakPoint (ushort address, bool enabled)
+            {
+                this.Address = address;
+                this.Enabled = enabled;
+            }
+        }
+
         public bool SingleStep = true;
         public bool StackWidth8 = false;
-        public ushort tick = 0;   // number of processor clock cyclces
+        public uint tick = 0;   // number of processor clock cyclces
         public Registers REG;
         public StatusFlags FLAGS;
         public byte[] RAM_ME0 = new byte[0xFFFF + 0x01];
         public byte[] RAM_ME1 = new byte[0xFFFF + 0x01];
+        public List<BreakPoint> BreakPoints= new List<BreakPoint>();
         List<Delegate> delegatesTbl1 = new List<Delegate>();
         List<Delegate> delegatesTbl2 = new List<Delegate>();
 
         /// <summary>
-        /// The contructonator
+        /// The constructonator
         /// </summary>
         public lh5801()
         {
@@ -112,6 +125,10 @@ namespace lh5801_Emu
             ResetRegisters();
             Reset();
             ConfigDelegates();
+            BreakPoints.Add(new BreakPoint(0x000, false));  // Four breakpoints total
+            BreakPoints.Add(new BreakPoint(0x000, false));
+            BreakPoints.Add(new BreakPoint(0x000, false));
+            BreakPoints.Add(new BreakPoint(0x000, false));
         }
 
         /// <summary>
@@ -1201,12 +1218,13 @@ namespace lh5801_Emu
         /// </summary>
         public void Run()
         {
-            //do
-            //{
-                byte opcode = RAM_ME0[REG.P.R];
-                delegatesTbl1[opcode].DynamicInvoke();
-            //} while (!SingleStep);
+            byte opcode = RAM_ME0[REG.P.R];
+            delegatesTbl1[opcode].DynamicInvoke();
 
+            if (BreakPoints.Contains(new BreakPoint(REG.P.R, true)))
+            {
+                SingleStep = true;
+            }
         }
 
         #endregion UI Interface
@@ -1264,7 +1282,6 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
             this.REG.A = Add(this.REG.A, this.RAM_ME0[REG.X.R]);
-            
             // flags set by addition function
         }
 
@@ -1418,6 +1435,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & (X)
         /// Opcode 0F, Bytes 1
         /// </summary>
+        /// todo: can simplify
         private void BIT_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1500,6 +1518,7 @@ namespace lh5801_Emu
         /// A = (Y)
         /// Opcode 0x15, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void LDA_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1526,6 +1545,7 @@ namespace lh5801_Emu
         /// Opcode 17, Bytes 1
         /// Compare A + (Y)
         /// </summary>
+        /// todo: simplify
         private void CPA_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1570,7 +1590,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             this.REG.Y.RL = this.REG.A;
             tick += 5;
-            // no flg changes
+            // no flag changes
         }
 
         /// <summary>
@@ -1591,6 +1611,7 @@ namespace lh5801_Emu
         /// A = A - (Y) BCD Subtraction
         /// Opcode 1C, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void DCS_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1605,6 +1626,7 @@ namespace lh5801_Emu
         /// A = A ^ (Y)
         /// Opcode 1D, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void EOR_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1632,6 +1654,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & (Y)
         /// Opcode 1F, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void BIT_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1714,6 +1737,7 @@ namespace lh5801_Emu
         /// A = (U)
         /// Opcode 0x25, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void LDA_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1740,6 +1764,7 @@ namespace lh5801_Emu
         /// Opcode 27, Bytes 1
         /// Compare A + (U)
         /// </summary>
+        /// todo: simplify
         private void CPA_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1805,6 +1830,7 @@ namespace lh5801_Emu
         /// A = A - (U) BCD Subtraction
         /// Opcode 2C, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void DCS_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1819,6 +1845,7 @@ namespace lh5801_Emu
         /// A = A ^ (U)
         /// Opcode 2D, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void EOR_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1846,6 +1873,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & (U)
         /// Opcode 2F, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void BIT_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1954,6 +1982,7 @@ namespace lh5801_Emu
         /// Opcode 37, Bytes 1
         /// Compare A + (V)
         /// </summary>
+        /// todo: simplify
         private void CPA_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -1996,7 +2025,7 @@ namespace lh5801_Emu
             REG.P.R += 1; // advance Program Counter
             this.REG.V.RL = this.REG.A;
             tick += 5;
-            // no flg changes
+            // no flag changes
         }
 
         /// <summary>
@@ -2017,6 +2046,7 @@ namespace lh5801_Emu
         /// A = A - (V) BCD Subtraction
         /// Opcode 3C, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void DCS_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2031,6 +2061,7 @@ namespace lh5801_Emu
         /// A = A ^ (V)
         /// Opcode 3D, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void EOR_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2058,6 +2089,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & (V)
         /// Opcode 3F, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void BIT_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2171,6 +2203,7 @@ namespace lh5801_Emu
         /// A = (X) then X = X - 1
         /// Opcode 0x47, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void LDE_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2200,6 +2233,7 @@ namespace lh5801_Emu
         /// (X) = (X) & n  
         /// Opcode 0x49, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ANI_X_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2215,6 +2249,7 @@ namespace lh5801_Emu
         /// XL = n
         /// Opcode 4A, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_XL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2229,6 +2264,7 @@ namespace lh5801_Emu
         /// (X) = (X) | n
         /// Opcode 4B, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ORI_X_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2244,6 +2280,7 @@ namespace lh5801_Emu
         /// Opcode 4C, Bytes 2
         /// Compare of XH + n
         /// </summary>
+        /// todo: simplify
         private void CPI_XH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2257,6 +2294,7 @@ namespace lh5801_Emu
         /// FLAGS = (X) & n
         /// Opcode 4D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void BII_X_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2272,6 +2310,7 @@ namespace lh5801_Emu
         /// Opcode 4E, Bytes 2
         /// Compare of XL + n
         /// </summary>
+        /// todo: simplify
         private void CPI_XL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2285,6 +2324,7 @@ namespace lh5801_Emu
         /// (X) = (X) + n
         /// Opcode 4F, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ADI_X_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2398,6 +2438,7 @@ namespace lh5801_Emu
         /// A = (Y) then Y = Y - 1
         /// Opcode 0x57, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void LDE_Y()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2413,6 +2454,7 @@ namespace lh5801_Emu
         /// YH = n
         /// Opcode 58, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_YH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2427,6 +2469,7 @@ namespace lh5801_Emu
         /// (Y) = (Y) & n  
         /// Opcode 0x59, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ANI_Y_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2442,6 +2485,7 @@ namespace lh5801_Emu
         /// YL = n
         /// Opcode 5A, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_YL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2456,6 +2500,7 @@ namespace lh5801_Emu
         /// (Y) = (Y) | n
         /// Opcode 5B, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ORI_Y_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2471,6 +2516,7 @@ namespace lh5801_Emu
         /// Opcode 5C, Bytes 2
         /// Compare of YH + n
         /// </summary>
+        /// todo: simplify
         private void CPI_YH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2484,6 +2530,7 @@ namespace lh5801_Emu
         /// FLAGS = (Y) & n
         /// Opcode 5D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void BII_Y_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2499,6 +2546,7 @@ namespace lh5801_Emu
         /// Opcode 5E, Bytes 2
         /// Compare of YL + n
         /// </summary>
+        /// todo: simplify
         private void CPI_YL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2512,6 +2560,7 @@ namespace lh5801_Emu
         /// (Y) = (Y) + n
         /// Opcode 5F, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ADI_Y_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2625,6 +2674,7 @@ namespace lh5801_Emu
         /// A = (U) then U = U - 1
         /// Opcode 0x67, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void LDE_U()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2640,6 +2690,7 @@ namespace lh5801_Emu
         /// UH = n
         /// Opcode 68, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_UH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2654,6 +2705,7 @@ namespace lh5801_Emu
         /// (U) = (U) & n  
         /// Opcode 0x69, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ANI_U_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2669,6 +2721,7 @@ namespace lh5801_Emu
         /// UL = n
         /// Opcode 6A, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_UL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2683,6 +2736,7 @@ namespace lh5801_Emu
         /// (U) = (U) | n
         /// Opcode 6B, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ORI_U_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2698,6 +2752,7 @@ namespace lh5801_Emu
         /// Opcode 6C, Bytes 2
         /// Compare of UH + n
         /// </summary>
+        /// todo: simplify
         private void CPI_UH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2711,6 +2766,7 @@ namespace lh5801_Emu
         /// FLAGS = (U) & n
         /// Opcode 6D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void BII_U_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2726,6 +2782,7 @@ namespace lh5801_Emu
         /// Opcode 6E, Bytes 2
         /// Compare of UL + n
         /// </summary>
+        /// todo: simplify
         private void CPI_UL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2739,6 +2796,7 @@ namespace lh5801_Emu
         /// (U) = (U) + n
         /// Opcode 6F, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ADI_U_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2852,6 +2910,7 @@ namespace lh5801_Emu
         /// A = (V) then V = V - 1
         /// Opcode 77, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void LDE_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2867,6 +2926,7 @@ namespace lh5801_Emu
         /// VH = n
         /// Opcode 78, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_VH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2881,6 +2941,7 @@ namespace lh5801_Emu
         /// (V) = (V) & n  
         /// Opcode 0x79, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ANI_V_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2896,6 +2957,7 @@ namespace lh5801_Emu
         /// VL = n
         /// Opcode 7A, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void LDI_VL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2910,6 +2972,7 @@ namespace lh5801_Emu
         /// (V) = (V) | n
         /// Opcode 7B, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ORI_V_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2925,6 +2988,7 @@ namespace lh5801_Emu
         /// Opcode 7C, Bytes 2
         /// Compare of VH + n
         /// </summary>
+        /// todo: simplify
         private void CPI_VH_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2938,6 +3002,7 @@ namespace lh5801_Emu
         /// FLAGS = (V) & n
         /// Opcode 7D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void BII_V_n_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2953,6 +3018,7 @@ namespace lh5801_Emu
         /// Opcode 7E, Bytes 2
         /// Compare of VL + n
         /// </summary>
+        /// todo: simplify
         private void CPI_VL_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -2966,6 +3032,7 @@ namespace lh5801_Emu
         /// (V) = (V) + n
         /// Opcode 7F, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void ADI_V_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3184,6 +3251,7 @@ namespace lh5801_Emu
         /// A = A + (X) BCD Addition
         /// Opcode 8C, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void DCA_X_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3433,6 +3501,7 @@ namespace lh5801_Emu
         /// A = A + (Y) BCD Addition
         /// Opcode 9C, Bytes 1
         /// </summary>
+        /// todo: simoplify
         private void DCA_Y_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3516,6 +3585,7 @@ namespace lh5801_Emu
         /// A = A - (pp)
         /// Opcode A1, Bytes 3
         /// </summary>
+        /// todo: simplify
         public void SBC_pp_ME0()
         {
             REG.P.R += 1;                       // advance Program Counter
@@ -3663,6 +3733,7 @@ namespace lh5801_Emu
         /// A = A + (U) BCD Addition
         /// Opcode AC, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void DCA_U_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3677,6 +3748,7 @@ namespace lh5801_Emu
         /// A = A ^ (pp)
         /// Opcode AD, Bytes 3
         /// </summary>
+        /// todo: simplify
         private void EOR_pp_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3706,6 +3778,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & (pp)
         /// Opcode AF, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void BIT_pp_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3885,6 +3958,7 @@ namespace lh5801_Emu
         /// A = A + (V) BCD Addition
         /// Opcode BC, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void DCA_V_ME0()
         {
             REG.P.R += 1; // advance Program Counter
@@ -3952,7 +4026,7 @@ namespace lh5801_Emu
         /// </summary>
         public void VEJ_C0()
         {
-            REG.P.R += 1; // advance Program Counter
+            REG.P.R += 1;                       // advance Program Counter
             
             RAM_ME0[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
             RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
@@ -3975,7 +4049,7 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value); 
 
-                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
                 RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                       // move stack pointer to next position
 
@@ -3994,7 +4068,7 @@ namespace lh5801_Emu
         {
             REG.P.R += 1; // advance Program Counter
 
-            RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+            RAM_ME0[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
             RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
             REG.S.R -= 2;                       // move stack pointer to next position
 
@@ -4015,7 +4089,7 @@ namespace lh5801_Emu
             {
                 ushort address = (ushort)(0xFF00 | value);
 
-                RAM_ME0[REG.S.R] = REG.P.RL;        // (Stack Pointer)     = Program Counter Low Byte
+                RAM_ME0[REG.S.R]     = REG.P.RL;    // (Stack Pointer)     = Program Counter Low Byte
                 RAM_ME0[REG.S.R - 1] = REG.P.RH;    // (Stack Pointer - 1) = Program Counter Hi  Byte
                 REG.S.R -= 2;                       // move stack pointer to next position
 
@@ -4047,6 +4121,7 @@ namespace lh5801_Emu
         /// If Half-Carry Reset do Indexed Vectored Call. $FF n. n = ($00-$F6)
         /// Opcode C5, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void VHR_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4087,6 +4162,7 @@ namespace lh5801_Emu
         /// If Half-Carry Set do Indexed Vectored Call. $FF n. n = ($00-$F6)
         /// Opcode C7, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void VHS_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4127,6 +4203,7 @@ namespace lh5801_Emu
         /// If Z Reset do Indexed Vectored Call. $FF n. n = ($00-$F6)
         /// Opcode C9, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void VZR_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4167,6 +4244,7 @@ namespace lh5801_Emu
         /// If Z Set do Indexed Vectored Call. $FF n. n = ($00-$F6)
         /// Opcode CB, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void VZS_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4207,6 +4285,7 @@ namespace lh5801_Emu
         /// Unconditional Indexed Vectored Call. $FF n. n = ($00-$F6)
         /// Opcode CD, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void VMJ_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4243,6 +4322,7 @@ namespace lh5801_Emu
         /// If V Set do Indexed Vectored Call.. $FF n. n = ($00-$F6)
         /// Opcode CF, Bytes 2
         /// </summary>
+        /// todo: simplify
         public void VVS_n()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4633,9 +4713,9 @@ namespace lh5801_Emu
         /// </summary>
         private void ANI_pp_n_ME0()
         {
-            REG.P.R += 1; // advance Program Counter
+            REG.P.R += 1;               // advance Program Counter
             ushort address = GetWord(); // P += 2
-            byte value = GetByte(); // P += 1
+            byte value = GetByte();     // P += 1
             RAM_ME0[address] = (byte)(RAM_ME0[address] & value);
             SetZFlag();
             tick += 19;
@@ -4842,6 +4922,7 @@ namespace lh5801_Emu
         /// Opcode F7, Bytes 1
         /// FLAGS = A compared to (X) register, then INC X
         /// </summary>
+        /// todo: remove 'value'
         private void CIN()
         {
             REG.P.R += 1; // advance Program Counter
@@ -4996,6 +5077,7 @@ namespace lh5801_Emu
         /// A = #(X)
         /// Opcode 0xFD 05, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void LDA_X_ME1()
         {
             // FD handled before hand P += 1
@@ -5051,6 +5133,7 @@ namespace lh5801_Emu
         /// Stack -> X
         /// Opcode FD 0A, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void POP_X()
         {
             // FD handled before hand P += 1
@@ -5084,6 +5167,7 @@ namespace lh5801_Emu
         /// A = A - #(X) BCD Subtraction
         /// Opcode FD 0C, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCS_X_ME1()
         {
             // FD handled before hand P += 1
@@ -5099,6 +5183,7 @@ namespace lh5801_Emu
         /// A = A ^ #(X)
         /// Opcode FD 0D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void EOR_X_ME1()
         {
             // FD handled before hand P += 1
@@ -5128,6 +5213,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & #(X)
         /// Opcode FD 0F, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void BIT_X_ME1()
         {
             REG.P.R += 1; // advance Program Counter
@@ -5173,6 +5259,7 @@ namespace lh5801_Emu
         /// A = #(Y)
         /// Opcode 0xFD 15, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void LDA_Y_ME1()
         {
             // FD handled before hand P += 1
@@ -5228,6 +5315,7 @@ namespace lh5801_Emu
         /// Stack -> Y
         /// Opcode FD 1A, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void POP_Y()
         {
             // FD handled before hand P += 1
@@ -5261,6 +5349,7 @@ namespace lh5801_Emu
         /// A = A - #(Y) BCD Subtraction
         /// Opcode FD 1C, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCS_Y_ME1()
         {
             // FD handled before hand P += 1
@@ -5276,6 +5365,7 @@ namespace lh5801_Emu
         /// A = A ^ #(Y)
         /// Opcode FD 1D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void EOR_Y_ME1()
         {
             // FD handled before hand P += 1
@@ -5305,6 +5395,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & #(Y)
         /// Opcode FD 1F, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void BIT_Y_ME1()
         {
             REG.P.R += 1; // advance Program Counter
@@ -5350,6 +5441,7 @@ namespace lh5801_Emu
         /// A = #(U)
         /// Opcode 0xFD 25, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void LDA_U_ME1()
         {
             // FD handled before hand P += 1
@@ -5405,6 +5497,7 @@ namespace lh5801_Emu
         /// Stack -> U
         /// Opcode FD 2A, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void POP_U()
         {
             // FD handled before hand P += 1
@@ -5438,6 +5531,7 @@ namespace lh5801_Emu
         /// A = A - #(U) BCD Subtraction
         /// Opcode FD 2C, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCS_U_ME1()
         {
             // FD handled before hand P += 1
@@ -5453,6 +5547,7 @@ namespace lh5801_Emu
         /// A = A ^ #(U)
         /// Opcode FD 2D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void EOR_U_ME1()
         {
             // FD handled before hand P += 1
@@ -5482,6 +5577,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & #(U)
         /// Opcode FD 2F, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void BIT_U_ME1()
         {
             REG.P.R += 1; // advance Program Counter
@@ -5527,6 +5623,7 @@ namespace lh5801_Emu
         /// A = #(V)
         /// Opcode 0xFD 35, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void LDA_V_ME1()
         {
             // FD handled before hand P += 1
@@ -5582,6 +5679,7 @@ namespace lh5801_Emu
         /// Stack -> V
         /// Opcode FD 3A, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void POP_V()
         {
             // FD handled before hand P += 1
@@ -5615,6 +5713,7 @@ namespace lh5801_Emu
         /// A = A - #(V) BCD Subtraction
         /// Opcode FD 3C, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCS_V_ME1()
         {
             // FD handled before hand P += 1
@@ -5630,6 +5729,7 @@ namespace lh5801_Emu
         /// A = A ^ #(V)
         /// Opcode FD 3D, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void EOR_V_ME1()
         {
             // FD handled before hand P += 1
@@ -5659,6 +5759,7 @@ namespace lh5801_Emu
         /// ZFLAG = A & #(V)
         /// Opcode FD 3F, Bytes 1
         /// </summary>
+        /// todo: simplify
         private void BIT_V_ME1()
         {
             REG.P.R += 1; // advance Program Counter
@@ -5764,6 +5865,7 @@ namespace lh5801_Emu
         /// BF Flip-Flop reset, Not sure what BF flip-flop is
         /// Opcode FD 4C, Bytes 2
         /// </summary>
+        /// todo: not implemented
         private void OFF()
         {
             // FD handled before hand P += 1
@@ -5776,6 +5878,7 @@ namespace lh5801_Emu
         /// FLAGS = #(X) & n
         /// Opcode FD 4D, Bytes 3
         /// </summary>
+        /// todo: simplify
         private void BII_X_n_ME1()
         {
             // FD handled before hand P += 1
@@ -5808,8 +5911,8 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            byte val = GetByte(); // P += 1
-            RAM_ME1[REG.X.R] = Add(RAM_ME1[REG.X.R], val);
+            byte value = GetByte(); // P += 1
+            RAM_ME1[REG.X.R] = Add(RAM_ME1[REG.X.R], value);
             tick += 17;
             // flags set by addition function
         }
@@ -5909,6 +6012,7 @@ namespace lh5801_Emu
         /// FLAGS = #(Y) & n
         /// Opcode FD 5D, Bytes 3
         /// </summary>
+        /// todo: simplify
         private void BII_Y_n_ME1()
         {
             // FD handled before hand P += 1
@@ -6030,6 +6134,7 @@ namespace lh5801_Emu
         /// FLAGS = #(U) & n
         /// Opcode FD 6D, Bytes 3
         /// </summary>
+        /// todo: simplify
         private void BII_U_n_ME1()
         {
             // FD handled before hand P += 1
@@ -6137,6 +6242,7 @@ namespace lh5801_Emu
         /// FLAGS = #(V) & n
         /// Opcode FD 7D, Bytes 3
         /// </summary>
+        /// todo: simplify
         private void BII_V_n_ME1()
         {
             // FD handled before hand P += 1
@@ -6187,7 +6293,7 @@ namespace lh5801_Emu
         {
             // FD handled before hand P += 1
             REG.P.R += 1; // advance Program Counter
-            RAM_ME0[REG.S.R]   = REG.X.RL;
+            RAM_ME0[REG.S.R] = REG.X.RL;
             REG.S.R -= 1; // move stack pointer to next position
             RAM_ME0[REG.S.R] = REG.X.RH;
             REG.S.R -= 1; // move stack pointer to next position
@@ -6199,6 +6305,7 @@ namespace lh5801_Emu
         /// Stack -> A
         /// Opcode FD 8A, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void POP_A()
         {
             // FD handled before hand P += 1
@@ -6215,6 +6322,7 @@ namespace lh5801_Emu
         /// A = A + (X) BCD Addition
         /// Opcode FD 8C, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCA_X_ME1()
         {
             // FD handled before hand P += 1
@@ -6264,6 +6372,7 @@ namespace lh5801_Emu
         /// A = A + (Y) BCD Addition
         /// Opcode FD 9C, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCA_Y_ME1()
         {
             // FD handled before hand P += 1
@@ -6283,6 +6392,7 @@ namespace lh5801_Emu
         /// A = A - #(pp)
         /// Opcode FD A1, Bytes 4
         /// </summary>
+        /// todo: pull out GetWord()
         public void SBC_pp_ME1()
         {
             // FD handled before hand P += 1
@@ -6401,6 +6511,7 @@ namespace lh5801_Emu
         /// A = A + (U) BCD Addition
         /// Opcode FD AC, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCA_U_ME1()
         {
             // FD handled before hand P += 1
@@ -6416,6 +6527,7 @@ namespace lh5801_Emu
         /// A = A ^ #(pp)
         /// Opcode FD AD, Bytes 4
         /// </summary>
+        /// todo: simplify
         private void EOR_pp_ME1()
         {
             // FD handled before hand P += 1
@@ -6510,6 +6622,7 @@ namespace lh5801_Emu
         /// A = A + (V) BCD Addition
         /// Opcode FD BC, Bytes 2
         /// </summary>
+        /// todo: simplify
         private void DCA_V_ME1()
         {
             // FD handled before hand P += 1
@@ -6523,7 +6636,7 @@ namespace lh5801_Emu
         /// <summary>
         /// RIE
         /// Opcode FD BE, Bytes 2
-        /// Reset CInterrupt Enable Flag
+        /// Reset Interrupt Enable Flag
         /// </summary>
         private void RIE()
         {

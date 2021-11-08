@@ -27,7 +27,7 @@ dialog at this point.
 
 Most opcodes should work properly a few have not been implemented yet
 as testing on actual hardware needs to be done. Opcodes not implemented
-ATP, CDV, ITA, OFF and perhaps a few more.
+ATP, CDV, ITA, OFF and perhaps a few more. See ToDO.txt for more details.
 
 ![Prerelease UI](/Images/lh5801_Emu_01.png)
 
@@ -35,6 +35,11 @@ Overly simplistic change log:
 03/11/2021 - 1) Fixed bug where Carry Flag was carried into INC and DEC
              2) Added very simple threading to allow UI to break a running CPU.
              
-11/5/2021  - 1) Added stack viewer which can be set to 8/16 bit widths
+5/11/2021  - 1) Added stack viewer which can be set to 8/16 bit widths
              2) Added cycle counter, maximum count of FFFF
              3) Improved validation of Value input text box to catch values > FF
+
+8/11/2021  - 1) Added CPU execution speed display
+             2) Improved UI, all text boxes should be updated properly
+             3) Added menu strip for file operations and removed buttons
+             4) Made a To Do list in ToDo.txt
