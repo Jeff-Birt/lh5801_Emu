@@ -518,12 +518,11 @@ namespace lh5801_Emu
         {
             System.Windows.Forms.OpenFileDialog openFileDialog1;
             openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            openFileDialog1.ShowDialog();
 
-            string inputFile = openFileDialog1.FileName;
-
-            if (inputFile != "")
+            if (openFileDialog1.ShowDialog() == DialogResult.OK && openFileDialog1.CheckFileExists == true)
             {
+                string inputFile = openFileDialog1.FileName;
+
                 FileStream inputfs = new FileStream(inputFile, FileMode.Open, FileAccess.Read);
                 BinaryReader fileReader = new BinaryReader(inputfs);
                 long fileSize = inputfs.Length;
@@ -564,11 +563,10 @@ namespace lh5801_Emu
         {
             System.Windows.Forms.SaveFileDialog saveFileDialog1;
             saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            saveFileDialog1.ShowDialog();
-            string outputFile = saveFileDialog1.FileName;
 
-            if (outputFile != "")
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK && saveFileDialog1.CheckFileExists == true)
             {
+                string outputFile = saveFileDialog1.FileName;
                 long fileSize = 0xFFFF;
 
                 FileStream outputfs = new FileStream(outputFile, FileMode.Create);

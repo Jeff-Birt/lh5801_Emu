@@ -4,26 +4,30 @@ Sharp lh5801 Microprocessor Emulator
 
 Written in C# using VS 2017
 
-Can find debug build exe in 'Releases'
-
-This is still a VERY early version and is most likely to crash a lot.
+The RAM_ME0 and RAM_ME1 radio buttons set which RAM bank you are viewing,
+which bank code you type in will be saved to and which bank is a file
+is loaded into or saved from.
 
 To enter code:
-
 1) Type address in 'Address' box in hex, hit Enter
-2) Type code in 'Value' box, space delimited bytes in hex, hit Enter
-3) The hex dump/editor is 'READ ONLY' at this point.
+2) Set RAM bank ME0/ME1 to load into
+3) Type code in 'Value' box, space delimited bytes in hex, hit Enter
+4) The hex dump/editor is 'READ ONLY' at this point.
+
+To load code from a file:
+1) Code must be in binary form
+2) Set Address text box to starting address code should be loaded into
+3) Set RAM bank ME0/ME1 to load into
+4) Use file dialog to load file, if it will not fit in RAM a message pops up
+
+Saving:
+1) Select the RAM bank ME0/ME1 to save
+2) Use the file dialog to save file
+3) Entire bank of RAM saved to one binary file
 
 Defaults to Single Step mode. Pressing 'RUN' in this example runs until
 the HLT opcode (FD B1) is encountered, this sets it back to Single Step mode
 so it halts after this opcode finished.
-
-The RAM_ME0 and RAM_ME1 radio buttons set which RAM bank you are viewing
-and which back will be loaded into or saved from. You can use the 'Load'
-button to load a binary file into selected RAM bank starting at address
-given by 'Address' text box. The 'Save' button will save the entire RAM
-bank to a binary file. This was done to avoid creating a custom save
-dialog at this point.
 
 Most opcodes should work properly a few have not been implemented yet
 as testing on actual hardware needs to be done. Opcodes not implemented
@@ -48,3 +52,7 @@ Overly simplistic change log:
              2) Refactored several opcodes listed in ToDo.txt
              3) Implemented DRL and DRR opcodes
              4) Remaining opcodes not implemented require a BUS
+
+10/11/2021 - 1) Tweaked load/save dialog 
+             2) Created an actual installable release
+             3) Spiffy Emu icon :)
