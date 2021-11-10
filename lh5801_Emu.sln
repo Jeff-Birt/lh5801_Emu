@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lh5801_Emu", "lh5801_Emu.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lh5801_Test", "..\lh5801_Test\lh5801_Test.csproj", "{9A7309AC-C6A3-4320-903F-E0756CD591F5}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "lh5801_Emu_Setup", "..\lh5801_Emu_Setup\lh5801_Emu_Setup.vdproj", "{B90CEB8A-08BA-4564-B16F-8746F692F64B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,8 @@ Global
 		{9A7309AC-C6A3-4320-903F-E0756CD591F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A7309AC-C6A3-4320-903F-E0756CD591F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A7309AC-C6A3-4320-903F-E0756CD591F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B90CEB8A-08BA-4564-B16F-8746F692F64B}.Debug|Any CPU.ActiveCfg = Debug
+		{B90CEB8A-08BA-4564-B16F-8746F692F64B}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

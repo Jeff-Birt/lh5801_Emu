@@ -1,4 +1,4 @@
-# lh5801_Emu
+![Prerelease UI](/Images/emu72.png) # lh5801_Emu
 
 Sharp lh5801 Microprocessor Emulator  
 
@@ -27,9 +27,9 @@ dialog at this point.
 
 Most opcodes should work properly a few have not been implemented yet
 as testing on actual hardware needs to be done. Opcodes not implemented
-ATP, CDV, ITA, OFF and perhaps a few more. See ToDO.txt for more details.
+ATP, CDV, ITA, OFF. See ToDO.txt for more details.
 
-![Prerelease UI](/Images/lh5801_Emu_01.png)
+![Prerelease UI](/Images/lh5801_Emu_V0.5.png)
 
 Overly simplistic change log:
 03/11/2021 - 1) Fixed bug where Carry Flag was carried into INC and DEC
@@ -43,3 +43,8 @@ Overly simplistic change log:
              2) Improved UI, all text boxes should be updated properly
              3) Added menu strip for file operations and removed buttons
              4) Made a To Do list in ToDo.txt
+
+9/11/2021  - 1) Fixed crash when canceling file load/save dialogs
+             2) Refactored several opcodes listed in ToDo.txt
+             3) Implemented DRL and DRR opcodes
+             4) Remaining opcodes not implemented require a BUS

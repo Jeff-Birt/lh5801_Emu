@@ -1,93 +1,33 @@
 Todo list:
 
+Ideas:
+See if a BUS can be implemented. The CPU will send Address and Data to BUS,
+BUS will decode what device this address is mapped to and forward request
+to that device. 
+
+Will need CPU control signals available to BUS:
+1) RD/WR
+2) ME0 ME1 
+3) PU PV 
+
+
 All V register opcodes:
 All opcodes using V register are wrong! V does nto work like other registers.
 
 Not implemented:
-ITA - not implemented
-ATP - not implemented
-DDR_X_ME1 - not implemented
-DRL_X_ME1 - not implemented
-DDR_X_ME0 - not implemented
-DRL_X_ME0 - not implemented
-CDV - not implemented
+ITA - Input Port IN0-7 to accumulator -> Need BUS first
+ATP - Accumulator to Data bus, X to Address bus -> Need BUS first
+CDV - Clear internal clock divider? Not sure important for emulation.
+OFF - BF Flip flop reset. What does it do?
+
+BFO, BFI 
+BF flipflop output (BFO) and input (BFI). The BF flipflop is reset by the OFF 
+instruction from the CPU  and will be set when the input BFI is turned to high level. 
+BFO is in low level when the BF flipflop is set and in high level when reset. 
+As VGG is power supply to the BF flipflop, the contents of the flipflop are retained as 
+long as VGG is in supply. 
+Normally, it is used for memory backup system. 
 
 Misc:
-CIN - todo: remove 'value'
-SBC_pp_ME1 - pull out GetWord()
-TTA - does it work right?
 
 See if can be simplified:
-BIT_X_ME0 - simplify
-LDA_Y_ME0 - simplify
-CPA_Y_ME0 - simplify
-DCS_Y_ME0 - simplify
-EOR_Y_ME0 - simplify
-BIT_Y_ME0 - simplify
-LDA_U_ME0 - simplify
-CPA_U_ME0 - simplify
-DCS_U_ME0 - simplify
-EOR_U_ME0 - simplify
-BIT_U_ME0 - simplify
-LDE_X_ME0 - simplify
-ANI_X_n_ME0 - simplify
-LDI_XL_n - simplify
-ORI_X_n_ME0 - simplify
-CPI_XH_n - simplify
-BII_X_n_ME0 - simplify
-CPI_XL_n - simplify
-ADI_X_n - simplify
-LDE_Y - simplify
-LDI_YH_n - simplify
-ANI_Y_n_ME0 - simplify
-LDI_YL_n - simplify
-ORI_Y_n_ME0 - simplify
-CPI_YH_n - simplify
-BII_Y_n_ME0 - simplify
-CPI_YL_n - simplify
-ADI_Y_n - simplify
-LDE_U - simplify
-LDI_UH_n - simplify
-ANI_U_n_ME0 - simplify
-LDI_UL_n - simplify
-ORI_U_n_ME0 - simplify
-CPI_UH_n - simplify
-BII_U_n_ME0 - simplify
-CPI_UL_n - simplify
-ADI_U_n - simplify
-DCA_X_ME0 - simplify
-DCA_Y_ME0 - simplify
-SBC_pp_ME0 - simplify
-DCA_U_ME0 - simplify
-EOR_pp_ME0 - simplify
-BIT_pp_ME0 - simplify
-VHR_n - simplify
-VHS_n - simplify
-VZR_n - simplify
-VZS_n - simplify
-VMJ_n - simplify
-VVS_n - simplify
-LDA_X_ME1 - simplify
-POP_X - simplify
-DCS_X_ME1 - simplify
-EOR_X_ME1 - simplify
-BIT_X_ME1 - simplify
-LDA_Y_ME1 - simplify
-POP_Y - simplify
-DCS_Y_ME1 - simplify
-EOR_Y_ME1 - simplify
-BIT_Y_ME1 - simplify
-LDA_U_ME1 - simplify
-POP_U - simplify
-DCS_U_ME1 - simplify
-EOR_U_ME1 - simplify
-BIT_U_ME1 - simplify
-OFF - simplify
-BII_X_n_ME1 - simplify
-BII_Y_n_ME1 - simplify
-BII_U_n_ME1 - simplify
-POP_A - simplify
-DCA_X_ME1 - simplify
-DCA_Y_ME1 - simplify
-DCA_U_ME1 - simplify
-EOR_pp_ME1 - simplify

@@ -522,33 +522,36 @@ namespace lh5801_Emu
 
             string inputFile = openFileDialog1.FileName;
 
-            FileStream inputfs = new FileStream(inputFile, FileMode.Open, FileAccess.Read);
-            BinaryReader fileReader = new BinaryReader(inputfs);
-            long fileSize = inputfs.Length;
-            ushort targetAddress = (ushort)Convert.ToInt16(tbAddress.Text, 16);
-            ushort spaceLeft = (ushort)(0xFFFF - targetAddress);
+            if (inputFile != "")
+            {
+                FileStream inputfs = new FileStream(inputFile, FileMode.Open, FileAccess.Read);
+                BinaryReader fileReader = new BinaryReader(inputfs);
+                long fileSize = inputfs.Length;
+                ushort targetAddress = (ushort)Convert.ToInt16(tbAddress.Text, 16);
+                ushort spaceLeft = (ushort)(0xFFFF - targetAddress);
 
-            if (fileSize > spaceLeft)
-            {
-                string message = "File too large";
-                string title = "Oops!";
-                MessageBox.Show(message, title);
-            }
-            else
-            {
-                for (long i = 0; i < fileSize; i++)
+                if (fileSize > spaceLeft)
                 {
-                    if (rbME0.Checked)
-                    {
-                        CPU.RAM_ME0[targetAddress + i] = fileReader.ReadByte();
-                    }
-                    else
-                    {
-                        CPU.RAM_ME1[targetAddress + i] = fileReader.ReadByte();
-                    }
-
+                    string message = "File too large";
+                    string title = "Oops!";
+                    MessageBox.Show(message, title);
                 }
-                tmrUpdate.Enabled = true;
+                else
+                {
+                    for (long i = 0; i < fileSize; i++)
+                    {
+                        if (rbME0.Checked)
+                        {
+                            CPU.RAM_ME0[targetAddress + i] = fileReader.ReadByte();
+                        }
+                        else
+                        {
+                            CPU.RAM_ME1[targetAddress + i] = fileReader.ReadByte();
+                        }
+
+                    }
+                    tmrUpdate.Enabled = true;
+                }
             }
         }
 
@@ -564,24 +567,27 @@ namespace lh5801_Emu
             saveFileDialog1.ShowDialog();
             string outputFile = saveFileDialog1.FileName;
 
-            long fileSize = 0xFFFF;
-
-            FileStream outputfs = new FileStream(outputFile, FileMode.Create);
-            BinaryWriter fileWriter = new BinaryWriter(outputfs);
-
-            for (long i = 0; i < fileSize; i++)
+            if (outputFile != "")
             {
-                if (rbME0.Checked)
-                {
-                    fileWriter.Write((byte)CPU.RAM_ME0[i]);
-                }
-                else
-                {
-                    fileWriter.Write((byte)CPU.RAM_ME1[i]);
-                }
-            }
+                long fileSize = 0xFFFF;
 
-            tmrUpdate.Enabled = true;
+                FileStream outputfs = new FileStream(outputFile, FileMode.Create);
+                BinaryWriter fileWriter = new BinaryWriter(outputfs);
+
+                for (long i = 0; i < fileSize; i++)
+                {
+                    if (rbME0.Checked)
+                    {
+                        fileWriter.Write((byte)CPU.RAM_ME0[i]);
+                    }
+                    else
+                    {
+                        fileWriter.Write((byte)CPU.RAM_ME1[i]);
+                    }
+                }
+
+                tmrUpdate.Enabled = true;
+            }
         }
 
         #endregion Load / Save
